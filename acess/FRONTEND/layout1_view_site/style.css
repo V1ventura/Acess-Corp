@@ -1,0 +1,729 @@
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+    }
+
+    body {
+        font-family: "Ubuntu", sans-serif;
+        background-color: #0b1c2b;
+        color: #e0e6ed;
+        animation: fadeIn 3s ease-in;
+        scroll-behavior: smooth;
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    header {
+        background-color: #0a2f6e;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #000;
+        height: 80px;
+        position: fixed;
+        font-weight: bold; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .container1 {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    header .logo img {
+        height: 150px;
+        cursor: pointer;
+    }
+
+    header nav ul {
+        list-style: none;
+        display: flex;
+    }
+
+    header nav ul li {
+        display: inline-block;
+        margin-left: 45px;
+    }
+
+    header nav ul li a {
+        color: #fff;
+        text-decoration: none;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+
+    header nav ul li a:hover {
+        color: #0a2f6e;
+        text-decoration: underline;
+    }
+
+    .login-button {
+        display: inline-block; /* Garante que o link se comporte como um botão */
+        text-align: center; /* Centraliza o texto */
+        padding: 10px 20px;
+        background-color: transparent;
+        border: 3px solid #ffffff;
+        color: #ffffff;
+        text-decoration: none; /* Remove o sublinhado padrão do link */
+        border-radius: 50px; /* Bordas arredondadas */
+        font-weight: bold;
+        margin-left: 40px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .login-button:hover {
+        background-color: #ffffff; /* Altera a cor de fundo no hover */
+        color: #0a2f6e; /* Muda a cor do texto */
+    }
+     
+
+    .about-section, .about-section-2 {
+        text-align: center;
+        padding: 100px 20px;
+    }
+
+    .about-section {
+        background-color: #fdfdfd;
+        color: #070707;
+    }
+
+    .about-section-2 {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
+    .new-section {
+        background-color: #0701207c;
+        color: #ffffff;
+        padding: 50px 20px;
+        text-align: center;
+    }
+    body {
+        background: #0c0c24;
+        color: #fff;
+        line-height: 1.6;
+    }
+    
+    h1, h2 {
+        text-align: center;
+        color: #56b4ef;
+        margin-bottom: 20px;
+    }
+    
+    h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    /* Estilos gerais */
+    section {
+        padding: 40px 0;
+    }
+
+    #contact {
+        text-align: center; /* Garante que o conteúdo dentro fique centralizado */  
+        padding: 100px; /* Adiciona um espaçamento interno */
+    }
+
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO BANNER TELA INICIAL ----------------------------------------------------------------
+
+/* Estilo para  o container */
+.hero-section {
+    position: relative; /* Define posição relativa para sobreposição */
+    height: 100vh; /* Altura de 100% da tela */
+    font-size: 28px; /* Tamanho da fonte */
+    font-weight: bold; /* Texto em negrito */
+    background: rgba(0, 0, 0, 0.6); /* Fundo escuro transparente */
+    display: flex; /* Flexbox para centralizar */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    text-align: center; /* Alinha texto ao centro */
+    color: #e0e6ed; /* Cor do texto */
+    padding: 50px 20px; /* Espaço interno */
+    overflow: hidden; /* Oculta conteúdo que ultrapassa */
+}
+
+/* Estilo para o video */
+#background-video {
+    position: absolute; /* Posiciona o vídeo */
+    top: 0; left: 0; /* Alinha ao topo e à esquerda */
+    width: 100%; height: 100%; /* Preenche o contêiner */
+    object-fit: cover; /* Preenche sem distorcer */
+    z-index: -1; /* Coloca o vídeo atrás do conteúdo */
+}
+
+/* Estilo para a imagem da logo */
+.banner-img img {
+    width: 1700px; /* Largura da imagem */
+    margin-top: -220px; /* Espaço acima da imagem */
+    margin-bottom: -110px; /* Espaço abaixo da imagem */
+    height: 80%; /* Altura da imagem */
+}
+
+/* Estilo para o parágrafo */
+.banner-p {
+    color: #fcfcfc; /* Cor do texto */
+    line-height: 1.5; /* Espaçamento entre as linhas */
+    margin-top: -200px; /* Espaço acima do parágrafo */
+    margin-left: auto; /* Centraliza horizontalmente */
+    margin-right: auto; /* Centraliza horizontalmente */
+    text-align: center; /* Centraliza o texto */
+    width: 51%; /* Largura do bloco de texto */
+    font-size: 20px;/* Tamanho da fonte */
+    
+    background-color: rgba(21, 29, 43, 0.7); /* Fundo semi-transparente */
+    border-radius: 15px; /* Bordas arredondadas */
+    padding-top: 20px; /* Espaço no topo do parágrafo */
+    padding-bottom: 20px; /* Espaço na parte inferior */
+    padding-left: 40px; /* Espaço à esquerda */
+    padding-right: 40px; /* Espaço à direita */
+    box-sizing: border-box; /* Inclui padding no cálculo da largura */
+
+    border-bottom: 2px solid #56b4ef; /* Adiciona uma borda inferior azul clara */
+}
+
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO CONHEÇA MAIS SOBRE ACESS CORP, TELA SOBRE -------------------------------------------
+
+/* Estilo fundo do container */
+#sobre {
+    background-color: #020e22; /* Define o fundo da seção com um tom escuro */
+    text-align: center; /* Centraliza o texto dentro da seção */
+    padding: 80px 20px; /* Adiciona espaço interno: 80px no topo e 20px nas laterais */
+    color: white; /* Define a cor do texto como branco */
+}
+
+/* Estilo para o título */
+#sobre h2 {
+    font-size: 2.5em; /* Tamanho da fonte do título */
+    margin-bottom: 30px; /* Espaço abaixo do título */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilo container de imagem + texto */
+.container {
+    display: flex; /* Permite que os elementos dentro fiquem ao lado */
+    gap: -20px; /* Espaço negativo entre imagem e texto */
+    background: linear-gradient(135deg, #0c0c24, #082658); /* Fundo com gradiente diagonal */
+    border-radius: 20px; /* Bordas arredondadas */
+    padding-top: 20px; /* Espaço no topo */
+    padding-bottom: 20px; /* Espaço na parte inferior */
+    padding-left: 20px; /* Espaço à esquerda */
+    padding-right: 20px; /* Espaço à direita */
+}
+
+/* Estilo geral para o texto */
+.texto {
+    flex: 1; /* O texto ocupa o restante do espaço disponível */
+    padding-left: 120px; /* Espaço à esquerda do texto */
+    text-align: justify; /* Justifica o texto */
+}
+
+/* Estilo para o paragrafo */
+#sobre p {
+    font-size: 1.2em; /* Tamanho de fonte maior */
+    flex: 1; /* O parágrafo ocupa o restante do espaço */
+    margin-bottom: 20px; /* Espaço abaixo do parágrafo */
+    text-align: justify; /* Justifica o texto */
+    color: #d1d1d1; /* Cor do texto em cinza claro */
+}
+
+/* Estilo para a imagem dentro da seção */
+.sobre-imagem {
+    flex: 0 0 50%; /* Define que a imagem ocupa 50% do espaço disponível */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 60%; /* Limita a largura máxima da imagem */
+    margin-left: 20px; /* Adiciona margem à esquerda */
+}
+
+/* Estilo para a imagem aprofundada */
+.sobre-imagem img {
+    max-width: 60%; /* Define que a largura da imagem será no máximo 60% do seu contêiner */
+    height: auto; /* Mantém a proporção da imagem */
+    border-radius: 20px; /* Aplica bordas arredondadas à imagem */
+}
+
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO CONHEÇA MAIS SOBRE ACESS CORP, TELA SOBRE, MISSÃO E BENEFÍCIOS -------------------------------
+
+/* Estilo da aba de benefícios */
+.benefits-section {
+    background-color: #02022e; /* Fundo escuro para destacar o conteúdo */
+    color: white; /* Texto em branco para contraste com o fundo escuro */
+    padding: 40px 20px; /* Espaçamento interno (40px no topo e 20px nas laterais) */
+    border-radius: 15px; /* Bordas arredondadas para um visual mais suave */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Sombra para criar profundidade e destacar a seção */
+    text-align: center; /* Centraliza o conteúdo dentro da seção */
+    max-width: 1000px; /* Define a largura máxima para a seção */
+    margin: 50px auto; /* Centraliza a seção na tela com margem superior de 50px */
+}
+
+.benefits-section h2 {
+    font-size: 2.5em; /* Tamanho maior para o título */
+    margin-bottom: 20px; /* Espaço abaixo do título */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Sombra no texto do título para maior destaque */
+    color: #56b4ef; /* Cor azul para o título, criando contraste com o fundo escuro */
+}
+
+.benefits-section p {
+    font-size: 1.2em; /* Aumenta o tamanho da fonte do parágrafo */
+    margin-bottom: 50px; /* Espaço abaixo do parágrafo para separar o texto */
+}
+
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO CONHEÇA MAIS SOBRE ACESS CORP, TELA SOBRE, ELEMENTOS -------------------------------------
+
+/* Estilo seção Geral */
+#nossas-solucoes {
+    background-color: #0c0c24; /* Fundo escuro para contraste. */
+    padding: 80px 40px; /* Espaçamento interno */
+    display: flex; /* Usa Flexbox para o layout. */
+    justify-content: center; /* Centraliza os itens horizontalmente. */
+    align-items: center; /* Centraliza os itens verticalmente. */
+    flex-direction: column; /* Organiza os itens em coluna. */
+    min-height: 100vh; /* Garante altura mínima da tela inteira. */
+}
+
+/* Estilo das tabelas (containers) */
+.container3 {
+    background: linear-gradient(135deg, #0c0c24, #082658); /* Gradiente de fundo */
+    border-radius: 20px; /* Bordas arredondadas */
+    padding: 40px 30px; /* Espaçamento interno */
+    margin: 20px 0; /* Espaçamento entre as tabelas */
+    width: 70%; /* Largura das tabelas */
+    text-align: center; /* Centraliza o conteúdo dentro das tabelas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    position: relative; /* Para permitir o uso de um pseudo-elemento */
+}
+.container3::before {
+    content: ""; /* Criar um pseudo-elemento vazio */
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px; /* Borda de 2px para todos os lados */
+    border-radius: 20px; /* Bordas arredondadas para o pseudo-elemento */
+    border: 2px solid #56b4ef; /* Cor da borda */
+    pointer-events: none; /* Não interfere na interação com a caixa */
+}
+
+/* Título das seções (Praticidade & Agilidade, etc.) */
+.container3 h2 {
+    font-size: 2.5em; /* Tamanho grande do título */
+    color: #56b4ef; /* Cor do título */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px; /* Espaçamento abaixo do título */
+    font-weight: bold;
+}
+
+/* Parágrafos dentro das tabelas */
+.container3 p {
+    font-size: 1.2em; /* Tamanho maior do texto */
+    color: #d1d1d1; /* Cor cinza clara para o texto */
+    line-height: 1.6; /* Distância entre as linhas */
+    text-align: justify; /* Justifica o texto */
+}
+
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO SERVIÇOS----------------------------------------------------------------------------- */
+
+/* Geral da seção de serviços */
+.service-section, .service3-section {
+    background-color: #02022e; /* Define um fundo escuro para dar um contraste elegante com o texto claro */
+     color: #e0e6ed; /* Cor clara para o texto, garantindo boa legibilidade em fundo escuro */
+     padding: 100px 20px; /* Adiciona espaçamento interno, criando uma boa distância entre o conteúdo e as bordas */
+     text-align: center; /* Centraliza o texto dentro da seção */
+     border-radius: 15px; /* Arredonda as bordas para um design mais suave */
+     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); /* Aplica uma sombra sutil ao redor da seção, criando profundidade */
+ }
+ 
+ /* Container geral dos serviços (Imagem + Texto) */
+ .service-container {
+     display: flex; /* Organiza os itens (imagem e texto) em linha */
+     justify-content: space-between; /* Distribui o espaço entre os itens */
+     padding: 20px; /* Espaçamento interno para os itens dentro do container */
+     align-items: center; /* Alinha os itens verticalmente no centro */
+     flex-wrap: wrap; /* Permite que os itens se ajustem e quebrem para a próxima linha em telas pequenas */
+ }
+ 
+ /* Container geral dos serviços (Imagem + Texto) com fundo específico */
+ .service-container2 {
+    display: flex; /* Define o container como um flex container para alinhamento flexível */
+    justify-content: space-between; /* Distribui os itens (texto e imagem) com espaço entre eles */
+    padding: 20px; /* Adiciona espaço interno ao redor do conteúdo */
+    align-items: center; /* Alinha os itens verticalmente no centro */
+    flex-wrap: wrap; /* Permite que os itens se quebrem e se alinhem em uma nova linha quando necessário */
+    background-color: #0a2f6e; /* Adiciona um fundo azul para esta seção */
+    border-radius: 40px; /* Bordas mais arredondadas para um estilo moderno */
+}
+ 
+ /* Estilo para as imagens do QR Code */
+ .service-image-qrcode {
+     flex: 1; /* Permite que a imagem ocupe o mesmo espaço proporcional que o texto */
+     text-align: center; /* Centraliza a imagem */
+     max-width: 40%; /* Limita a largura da imagem a 40% */
+     order: 1; /* Ordena a imagem para aparecer primeiro na sequência (para personalização) */
+ }
+ 
+ /* Estilo para as imagens de Portaria1 */
+ .service-image-portaria1 {
+     flex: 1;/* Define a largura do texto como flexível */
+     text-align: center;/* Centraliza a imagem */
+     max-width: 35%; /* Imagem maior, ocupa 35% da largura */
+     order: 2; /* Coloca esta imagem depois da primeira */
+     margin-top: -165px; /* Movimenta a imagem para cima para ajuste de layout */
+ }
+ 
+ /* Estilo para as imagens de Portaria2 */
+ .service-image-portaria2 {
+     flex: 1;/* Define a largura do texto como flexível */
+     text-align: center;/* Centraliza a imagem */
+     max-width: 45%; /* Imagem maior, ocupa 45% da largura */
+     order: 1; /* Coloca essa imagem antes do texto */
+ }
+ 
+ /* Aplica borda arredondada e sombra às imagens */
+ .service-image-qrcode img, .service-image-portaria1 img, .service-image-portaria2 img {
+     max-width: 100%; /* Garante que as imagens ocupem toda a largura disponível sem ultrapassar */
+     border-radius: 10px; /* Arredonda as bordas das imagens */
+     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Aplica uma sombra suave nas imagens */
+ }
+ 
+ /* Estilo do texto do serviço */
+ .service-text {
+    flex: 1; /* Define a largura do texto como flexível */
+     text-align: left; /* Alinha o texto à esquerda */
+     order: 2; /* Coloca o texto após a imagem */
+     font-size: 1.2rem; /* Define o tamanho da fonte para o texto */
+     color: #d1d1d1; /* Cor de texto cinza claro para boa legibilidade */
+     line-height: 1.6; /* Define o espaçamento entre as linhas para melhor leitura */
+     text-align: justify; /* Justifica o texto, alinhando-o nas duas margens */
+     margin: 40px 60px; /* Adiciona margens ao redor do texto */
+ }
+ 
+ /* Estilo do texto para o primeiro container de serviços */
+ .service-text1 {
+    flex: 1; /* Define a largura do texto como flexível */
+     text-align: left;/* Alinha o texto à esquerda */
+     order: 1; /* Coloca este texto antes da imagem */
+     font-size: 1.2rem; /* Define o tamanho da fonte para o texto */
+     color: #d1d1d1; /* Cor de texto cinza claro para boa legibilidade */
+     line-height: 1.6; /* Define o espaçamento entre as linhas para melhor leitura */
+     text-align: justify; /* Justifica o texto, alinhando-o nas duas margens */
+     margin: 60px 40px;/* Adiciona margens ao redor do texto */
+     margin-top: -160px; /* Ajuste para que o texto se sobreponha ou se alinhe melhor com a imagem */
+ }
+ 
+/* Estilo do texto para o segundo container de serviços */
+.service-text2 {
+    flex: 1; /* Define a largura do texto como flexível */
+    text-align: left; /* Alinha o texto à esquerda */
+    order: 2; /* Coloca o texto depois da imagem */
+    font-size: 1.2rem; /* Define o tamanho da fonte */
+    color: #d1d1d1; /* Cor do texto */
+    line-height: 1.6; /* Define o espaçamento entre as linhas */
+    text-align: justify; /* Justifica o texto */
+    margin: 20px 0; /* Define as margens superior e inferior */
+}
+
+/* Estilo do título dentro do texto do serviço */
+.service-text h3 {
+    font-size: 2rem; /* Define o tamanho da fonte do título */
+    margin-bottom: 20px; /* Adiciona espaço abaixo do título */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Aplica sombra ao título */
+    text-align: center; /* Centraliza o título */
+}
+.service-text1 h3 {
+    font-size: 2rem; /* Define o tamanho da fonte do título */
+    margin-bottom: 20px; /* Adiciona espaço abaixo do título */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Aplica sombra ao título */
+    text-align: center; /* Centraliza o título */
+}
+ 
+ /* Estilo do título no serviço principal */
+ #Servicos h2 {
+     font-size: 2.5em; /* Tamanho grande para o título */
+     margin-bottom: 30px; /* Espaço abaixo do título */
+     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Sombra suave para destacar o título */
+     font-weight: bold; /* Torna o título em negrito */
+ }
+ 
+ /* Estilo dos parágrafos no serviço */
+ #Servicos p {
+     font-size: 1.2em; /* Aumenta o tamanho do texto para leitura confortável */
+     color: #d1d1d1; /* Define a cor do texto como cinza claro */
+     line-height: 1.8; /* Aumenta o espaçamento entre as linhas */
+     text-align: justify; /* Alinha o texto de forma justificada */
+     max-width: 1000px; /* Limita a largura do texto para não ficar muito largo */
+     margin: 0 auto 20px auto; /* Centraliza o parágrafo na página e adiciona margem inferior */
+ }
+ 
+ /* Descrição do serviço com animação */
+ .service-description {
+    font-size: 1.2em; /* Aumenta o tamanho do texto para leitura confortável */
+    color: #d1d1d1; /* Define a cor do texto como cinza claro */
+    line-height: 1.8; /* Aumenta o espaçamento entre as linhas */
+    text-align: justify; /* Alinha o texto de forma justificada */
+     max-width: 800px; /*Limita a largura do texto para não ficar muito largo */
+     margin: 0 auto 20px auto; /* Centraliza o parágrafo na página e adiciona margem inferior */
+     animation: fadeInUp 1.2s ease-in-out; /* Animação de fade-in suave */
+ }
+
+/* Container para os botões de categoria */
+.category-container {
+    display: flex; /* Define o layout como flexbox */
+    justify-content: center; /* Centraliza os botões horizontalmente */
+    gap: 10px; /* Define o espaço entre os botões */
+    margin-bottom: 20px; /* Adiciona espaço abaixo dos botões */
+}
+
+/* Estilo dos botões (agora 100% redondos) */
+.category-button {
+    background-color: #0a2f6e; /* Cor de fundo do botão */
+    color: white; /* Cor do texto do botão */
+    border: none; /* Remove a borda do botão */
+    border-radius: 50%; /* Torna o botão redondo */
+    width: 180px; /* Largura fixa do botão */
+    height: 180px; /* Altura fixa do botão (igual à largura) */
+    font-size: 1.2rem; /* Tamanho da fonte do texto */
+    display: flex; /* Usa flexbox para o layout interno */
+    justify-content: center; /* Centraliza o texto horizontalmente */
+    align-items: center; /* Centraliza o texto verticalmente */
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Adiciona uma transição suave para as mudanças de cor e escala */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Adiciona uma sombra ao redor do botão */
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+/* Efeito hover para os botões */
+.category-button:hover {
+    background-color: #56b4ef; /* Muda a cor de fundo para branco quando o mouse passa sobre o botão */
+    color: #0a2f6e; /* Muda a cor do texto para o azul quando o mouse passa sobre o botão */
+    transform: scale(1.1); /* Aumenta o tamanho do botão ao passar o mouse */
+    font-weight: bold;
+}
+
+/* Botão selecionado - estilo quando clicado */
+.category-button.selected {
+    background-color: #56b4ef; /* Muda a cor de fundo para branco quando o botão é selecionado */
+    color: #0a2f6e; /* Muda a cor do texto para o azul quando o botão é selecionado */
+    font-weight: bold;
+}
+
+/* Contêiner pai para centralizar a info-box */
+.info-box-container {
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    min-height: 100vh; /* Garantir que o contêiner ocupe toda a altura da tela */
+}
+
+.info-box {
+    display: none; /* Inicialmente, todas as caixas de conteúdo estão ocultas */
+    background: linear-gradient(135deg, #0c0c24, #082658); /* Gradiente de fundo */
+    padding: 10px; /* Espaçamento interno das caixas de conteúdo */
+    margin-top: 30px; /* Espaçamento superior */
+    border-radius: 20px; /* Bordas arredondadas */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil ao redor das caixas de conteúdo */
+    max-width: 1400px; /* Define uma largura máxima para as caixas */
+    width: 100%; /* Largura das caixas */
+    text-align: center; /* Centraliza o conteúdo dentro das tabelas */
+    position: relative; /* Para permitir o uso de um pseudo-elemento */
+}
+
+/* Pseudo-elemento para a borda */
+.info-box::before {
+    content: ""; /* Criar um pseudo-elemento vazio */
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px; /* Borda de 2px para todos os lados */
+    border-radius: 20px; /* Bordas arredondadas para o pseudo-elemento */
+    border: 2px solid #56b4ef; /* Cor da borda */
+    pointer-events: none; /* Não interfere na interação com a caixa */
+}
+
+.info-box p {
+    font-size: 1.2rem !important;
+    line-height: 1.6 !important;
+    color: white !important;
+    width: 95% !important;
+    max-width: 100% !important;
+}
+
+/* Mostrar o conteúdo quando a classe 'show' for aplicada */
+.info-box.show {
+    display: block; /* Torna a caixa de conteúdo visível */
+ 
+}
+
+/* Animação de fadeIn para o conteúdo */
+@keyframes fadeIn {
+    from {
+        opacity: 0; /* Começa com opacidade 0 (invisível) */
+    }
+    to {
+        opacity: 1; /* Termina com opacidade 1 (visível) */
+    }
+}
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO CONTATO  ----------------------------------------------------------------------------
+
+/* Estilização da seção de contato */
+#contato {
+    text-align: center; /* Centraliza o conteúdo */
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #0c0c24, #082658); /* Fundo moderno e futurista */
+    color: white; /* Texto branco para contraste */
+    border-radius: 20px; /* Borda arredondada */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra para efeito 3D */
+    width: 100%; /* Faz com que ocupe toda a largura da tela */
+}
+
+/* Estilização do título */
+#contato h2 {
+    font-size: 2.5rem; /* Define um tamanho maior para o título */
+    margin-bottom: 30px; /* Adiciona espaçamento abaixo do título */
+    font-weight: bold; /* Deixa o texto em negrito */
+    text-transform: uppercase; /* Converte o texto para maiúsculas */
+    color: #56b4ef; /* Usa um azul vibrante para destacar */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Sombra suave para destacar o título */
+}
+
+/* Container principal ocupando toda a largura */
+.container8 {
+    width: 100%; /* Faz com que ocupe 100% da largura disponível */
+    max-width: 1200px; /* Define um limite máximo para melhor visualização */
+    margin: 0 auto; /* Centraliza horizontalmente */
+    padding: 20px; /* Adiciona espaçamento interno */
+}
+
+/* Texto principal */
+.container6 p {
+    font-size: 1.2rem; /* Ajusta o tamanho da fonte */
+    line-height: 1.6; /* Define um espaçamento adequado entre linhas */
+    margin-bottom: 20px; /* Espaço entre os parágrafos */
+    margin-bottom: -10px; /* Remove qualquer margem inferior */
+}
+
+/* Estilização das informações de contato */
+.contact-info {
+    display: flex; /* Usa flexbox para organizar os elementos */
+    justify-content: space-evenly; /* Distribui os itens uniformemente */
+    flex-wrap: wrap; /* Permite que os itens quebrem para a linha de baixo se necessário */
+    margin-top: 30px; /* Adiciona um espaçamento superior */
+    width: 100%; /* Ocupa toda a largura */
+}
+
+/* Configuração dos blocos de informação com aumento de largura */
+.contact-info .container6 {
+    flex: 1; /* Faz com que os elementos ocupem o mesmo espaço */
+    min-width: 300px; /* Define um tamanho mínimo */
+    max-width: 400px; /* Aumenta o tamanho máximo das caixas */
+    margin: 15px; /* Espaçamento entre os blocos */
+    padding: 25px; /* Aumenta o espaçamento interno */
+    background: rgba(255, 255, 255, 0.1); /* Fundo semi-transparente para um efeito futurista */
+    border-radius: 10px; /* Bordas arredondadas */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Sombra suave */
+    text-align: center; /* Centraliza o conteúdo */
+}
+
+/* Estilização dos títulos das informações de contato */
+.contact-info h3 {
+    font-size: 1.5rem; /* Define o tamanho do título */
+    color: #56b4ef; /* Cor azul futurista */
+    margin-bottom: 10px; /* Espaçamento abaixo do título */
+}
+
+/* Botões de contato */
+.social-links {
+    margin-top: 30px; /* Espaço superior */
+    display: flex; /* Usa flexbox */
+    justify-content: center; /* Centraliza os botões */
+    gap: 20px; /* Define um espaçamento entre os botões */
+}
+
+/* Estilização geral dos botões */
+.contact-btn {
+    background: #0a2f6e;; /* Cor de fundo azul vibrante */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Sombra suave */
+    color: white; /* Texto branco */
+    border: none; /* Remove bordas */
+    padding: 12px 20px; /* Adiciona espaçamento interno */
+    font-size: 1.2rem; /* Tamanho da fonte */
+    font-weight: bold; /* Deixa o texto em negrito */
+    border-radius: 30px; /* Bordas arredondadas */
+    cursor: pointer; /* Define o cursor como clicável */
+    transition: transform 0.3s ease, background 0.3s ease; /* Animação suave ao passar o mouse */
+}
+
+/* Efeito ao passar o mouse sobre o botão */
+.contact-btn:hover {
+    background: #0a2f6e; /* Muda a cor de fundo para um tom mais escuro */
+    transform: scale(1.1); /* Aumenta o tamanho ligeiramente */
+}
+
+/* --------------------------------------------------------------------------------------------------------- */
+/* SEÇÃO RODAPÉ ---------------------------------------------- -------------------------------------
+
+/* Estilo para o rodapé */
+footer {
+    background-color: #020e22; /* Define um fundo escuro para o rodapé */
+    color: #fff; /* Define a cor do texto como branco */
+    padding: 40px 20px; /* Adiciona um espaçamento interno */
+    text-align: center; /* Centraliza o texto dentro do rodapé */
+    font-size: 1em; /* Define o tamanho da fonte como padrão */
+    padding: 50px 10px; /* Diminui o padding para reduzir a altura do rodapé */
+    position: relative; /* Define o posicionamento como relativo, permitindo o uso de posicionamento absoluto se necessário */
+}
+
+/* Container do rodapé */
+.container-footer {
+    display: flex; /* Usa flexbox para organizar os itens horizontalmente */
+    justify-content: space-between; /* Distribui o conteúdo igualmente entre as extremidades */
+    max-width: 1200px; /* Define uma largura máxima de 1200px para o rodapé */
+    margin: 0 auto; /* Centraliza o rodapé na tela */
+}
+
+/* Conteúdo do rodapé */
+.footer-content {
+    display: flex; /* Usa flexbox para alinhar o conteúdo horizontalmente */
+    justify-content: space-between; /* Distribui o conteúdo igualmente entre as extremidades */
+    width: 100%; /* Garante que o conteúdo ocupe 100% da largura disponível */
+    flex-wrap: wrap; /* Permite que o conteúdo se ajuste em diferentes linhas em telas menores */
+}
+
+/* Informações do rodapé */
+.footer-info {
+    flex: 1; /* Faz com que o bloco de informações ocupe 1 parte do espaço disponível */
+    padding: 10px; /* Adiciona 10px de espaçamento interno */
+    text-align: left; /* Alinha o texto à esquerda */
+    font-size: 0.9em; /* Define um tamanho de fonte um pouco menor que o padrão */
+}
+
+/* Informações emblema */
+.footer-emblema img {
+    max-width: 200px; /* Define o tamanho máximo da largura da imagem */
+    height: auto; /* Ajusta a altura da imagem automaticamente para manter a proporção */
+    display: block; /* Remove qualquer espaço abaixo da imagem */
+}
+
+
+/* --------------------------------------------------------------------------------------------------------- */
