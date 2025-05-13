@@ -1,0 +1,80 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+
+        <div class="content first-content">
+
+            <div class="first-column">
+                <h2 class="title title-primary">Bem-vindo Administrador!</h2>
+                <p class="description description-primary">Acesse sua conta para gerenciar o sistema.</p>
+                <p class="description description-primary">Clique no botão abaixo para continuar.</p>
+                <button id="signin" class="btn btn-primary">Entrar como Administrador</button>
+            </div>    
+            <div class="second-column">
+                <h2 class="title title-second">Login Portaria</h2>
+                <p class="description description-second">Utilize suas credenciais para acessar o sistema.</p>
+                <form class="form" id="signupForm">
+                    <label class="label-input">
+                        <i class="far fa-envelope icon-modify"></i>
+                        <input type="email" id="email" placeholder="Email">
+                        <div class="error-message" id="emailError"></div>
+                    </label>
+                    <label class="label-input">
+                        <i class="fas fa-lock icon-modify"></i>
+                        <input type="password" id="password" placeholder="Senha">
+                        <div class="error-message" id="passwordError"></div>
+                    </label>
+                    <button class="btn btn-second" id="submitSignup">Entrar</button>  
+                    
+                </form>
+            </div>
+            
+        </div>
+        <div class="content second-content">
+            <div class="first-column">
+                <h2 class="title title-primary">Bem-vindo Portaria!</h2>
+                <p class="description description-primary">Acesse sua conta para gerenciar o sistema.</p>
+                <p class="description description-primary">Clique no botão abaixo para continuar.</p>
+                <button id="signup" class="btn btn-primary">Entrar como portaria</button>
+                
+
+            </div>
+            <div class="second-column">
+                <h2 class="title title-second">Login Administrador</h2>
+                <p class="description description-second">Acesse com seu e-mail e senha:</p>
+                <form class="form" id="signinForm">
+                    <label class="label-input">
+                        <i class="far fa-envelope icon-modify"></i>
+                        <input type="email" id="loginEmail" placeholder="Email">
+                        <div class="error-message" id="loginEmailError"></div>
+                    </label>
+                    <label class="label-input">
+                        <i class="fas fa-lock icon-modify"></i>
+                        <input type="password" id="loginPassword" placeholder="Senha">
+                        <div class="error-message" id="loginPasswordError"></div>
+                    </label>
+                    <p class="password">
+                        Primeiro acesso? <a href="../Recuperacao/recuperacao.html">clique aqui</a>
+                    </p>
+                    
+
+                    <button class="btn btn-second" id="submitSignin">Entrar</button>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+    <button id="backButton">
+        <img src="https://cdn-icons-png.flaticon.com/512/93/93634.png" alt="Voltar" class="back-icon">
+    </button>
+    <script src="login.js"></script>
+</body>
+</html>

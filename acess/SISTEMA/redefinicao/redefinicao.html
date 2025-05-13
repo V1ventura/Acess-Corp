@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="redefinicao.css">
+    <title>Redefinição de Senha</title>
+</head>
+<body>
+    <div class="fullscreen-container">
+      <div class="content">
+        <div class="logo">
+          <img src="Imagem/ECOTRACK.png" alt="logo" width="200" height="66">
+        </div>
+        <h1>Redefinição de Senha</h1>
+        <form id="password-reset-form">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required>
+
+          <label for="token">Token:</label>
+          <input type="text" id="token" name="token" required>
+
+          <label for="new-password">Nova Senha:</label>
+          <input type="password" id="new-password" name="new-password" required>
+          <div class="password-strength">
+            <div class="password-strength-bar"></div>
+          </div>
+
+          <label for="confirm-password">Confirme a Nova Senha:</label>
+          <input type="password" id="confirm-password" name="confirm-password" required>
+
+          <button type="submit">Redefinir Senha</button>
+        </form>
+      </div>
+    </div>
+    <div class="wave-container">
+      <div class="wave"></div>
+    </div>
+    <script src="redefinicao.html"></script>
+</body>
+</html>
