@@ -6,11 +6,6 @@
     <link rel="stylesheet" href="adm.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script type="importmap">
-        {
-            "imports": {
-                "uuid": "https://jspm.dev/uuid"
-            }
-        }
     </script>
     <script src="adm.js" type="module"></script>
 </head>
@@ -27,9 +22,7 @@
                 <li data-section="administrador"><i class="fas fa-user"></i><span> Administradores</span></li>
                 <li data-section="moradores"><i class="fas fa-home"></i><span> Moradores</span></li>
                 <li data-section="entregas"><i class="fas fa-box"></i><span> Entregas</span></li>
-              <li data-section="relatorios"><i class="fas fa-file"></i><span>Relatórios</span></li>
-              <li data-section="porteiros"><i class="fas fa-user-lock"></i><span>Porteiros</span></li>
-
+                <li data-section="porteiros"><i class="fas fa-user-lock"></i><span>Porteiros</span></li>
             </ul>
             <ul style="margin-top: auto;">
                 <li data-section="sair" class="sair" data-icon="🚪"><i class="fas fa-sign-out-alt"></i><span>Sair</span></li>
@@ -81,7 +74,7 @@
                         <button type="button" id="cancelarCadastro">Cancelar</button>
                     </form>
                 </div>
-                <div id="pesquisaAdministrador">
+                <div id="pesquisaAdministrador" class="pesquisaEntity">
                     <label for="pesquisa">Pesquisar:</label>
                     <input type="text" id="pesquisa" name="pesquisa">
 
@@ -93,7 +86,7 @@
                 </div>
                 <div id="listaAdministrador">
                     <h2>Administrador Cadastrados</h2>
-                    <table id="administradorTable">
+                    <table id="administradorTable" class="entityTable">
                         <thead>
                             <tr>
                                 <th>Nome</th>
@@ -151,7 +144,7 @@
                     <button type="button" id="cancelarCadastroMorador">Cancelar</button>
                 </form>
             </div>
-            <div id="pesquisaMorador">
+            <div id="pesquisaMorador" class="pesquisaEntity">
                 <label for="pesquisaMorador">Pesquisar:</label>
                 <input type="text" id="pesquisaMorador" name="pesquisaMorador">
 
@@ -163,10 +156,12 @@
             </div>
             <div id="listaMoradores">
                 <h2>Moradores Cadastrados</h2>
-                <table id="moradoresTable">
+                <table id="moradoresTable" class="entityTable">
                     <thead>
                         <tr>
                             <th>Nome</th>
+                            <th>Sobrenome</th>
+                            <th>Email</th>
                             <th>Apartamento</th>
                             <th>Ações</th>
                         </tr>
@@ -207,7 +202,7 @@
                         <button type="button" id="cancelarCadastroEntrega">Cancelar</button>
                     </form>
                 </div>
-                <div id="pesquisaEntrega">
+                <div id="pesquisaEntrega" class="pesquisaEntity">
                     <label for="pesquisa">Pesquisar:</label>
                     <input type="text" id="pesquisa" name="pesquisa">
 
@@ -223,7 +218,7 @@
                 </div>
                 <div id="listaEntregas">
                     <h2>Entregas Cadastradas</h2>
-                    <table id="entregasTable">
+                    <table id="entregasTable" class="entityTable">
                         <thead>
                             <tr>
                                 <th>Destinatário</th>
@@ -240,43 +235,22 @@
                     </table>
                 </div>
             </section>
-          <section id="relatorios" class="section">
-                      <h1>Relatórios</h1>
-                      <div class="date-range-container">
-                          <label for="startDate">
-                              Data de Início:
-                              <input type="date" id="startDate" class="date-input">
-                          </label>
-                          <label for="endDate">
-                              Data de Término:
-                              <input type="date" id="endDate" class="date-input">
-                          </label>
-                      </div>
-
-                      <select id="reportType" class="report-select">
-                          <option value="all">Todos os Dados Cadastrados</option>
-                          <option value="visitantes">Visitantes</option>
-                          <option value="moradores">Moradores</option>
-                          <option value="entregas">Entregas</option>
-                      </select>
-
-                      <div class="report-info">
-                          <p>Informações adicionais sobre o tipo de relatório selecionado.</p>
-                      </div>
-
-                      <button class="generate-report-button">Gerar Relatório</button>
-
-                      <div class="generated-file-container">
-
-                      </div>
-                  </section>
                   <!-- porteiro.html -->
 <section id="porteiros" class="section active"> 
     <h1>Porteiro</h1>
     <div style="margin-bottom: 10px;">
         <button id="porteiroBtn">Cadastrar Porteiro</button>
     </div>
+    <div id="pesquisaPorteiro" class="pesquisaEntity">
+                <label for="pesquisaPorteiro">Pesquisar:</label>
+                <input type="text" id="pesquisaPorteiro" name="pesquisaPorteiro">
 
+                <label for="filtroPorteiroOpcao">Filtrar por:</label>
+                <select id="filtroPorteiroOpcao" name="filtroPorteiroOpcao">
+                    <option value="nomePorteiro">Nome</option>
+                    <option value="apartamentoPorteiro">Apartamento</option>
+                </select>
+            </div>
     <div class="form-container" id="cadastroPorteiroForm" style="display: none;">
         <h2>Cadastro do Porteiro</h2>
         <form id="porteiroForm">
@@ -309,7 +283,18 @@
 
     <div id="listaPorteiro">
         <h2>Porteiros Cadastrados</h2>
-        <div id="perfisContainer" class="perfis-container"></div>
+        <table id="porteiroTable" class="entityTable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Sobrenome</th>
+                    <th>Email</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="porteiroTableBody">
+            </tbody>
+        </table>   
     </div>
 </section>
 <section data-section="sair" id="sair" class="section">

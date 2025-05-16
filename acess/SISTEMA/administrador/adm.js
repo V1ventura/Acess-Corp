@@ -61,21 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         this.value = formatPhoneNumber(this.value);
     });
 
-    // Function to format date
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-        const year = date.getFullYear();
-        return `${year}-${month}-${day}`;
-    }
-
-    // Function to format time
-    function formatTime(timeString) {
-        const [hours, minutes] = timeString.split(':');
-        return `${hours}:${minutes}`;
-    }
-
     function showSection(sectionId) {
         const activeSection = document.querySelector('.section.active');
         if (activeSection) {
@@ -117,20 +102,16 @@ document.getElementById("foto").addEventListener("change", function () {
     }
 });
 
+    //#region Adm-Actions
     const tabelaBody = document.querySelector("#administradorTableBody");
 
-    if (!administradorSection || !tabelaBody) {
-        console.error("Elemento da seção ou da tabela não encontrado.");
-        return;
-    }
-
-            let administradores = [];
+    let administradores = [];
 
     async function getAdministradores() {
         try {
             const tokenData = JSON.parse(localStorage.getItem("authData"));
             if (!tokenData || !tokenData.accessToken) {
-                alert("Você precisa estar logado para visualizar administradores.");
+                showNotification('Você precisa estar logado para visualizar um administrador.', 'error');
                 return;
             }
 
@@ -154,9 +135,6 @@ document.getElementById("foto").addEventListener("change", function () {
 
             tabelaBody.innerHTML = "";
         
-            console.log("Resultado da API:", result);
-            console.log("Dados dos administradores:", result.data);
-
             administradores.forEach((admin, index) => {
             if (!admin || typeof admin !== "object") {
                 console.warn(`Administrador inválido no índice ${index}:`, admin);
@@ -198,15 +176,16 @@ document.getElementById("foto").addEventListener("change", function () {
 
     tabelaBody.addEventListener("click", async function (e) {
     if (e.target.classList.contains("editar-btn")) {
-    try {
-
-        const button = e.target; // <-- precisa ter isso para pegar o botão clicado
+        try {
+            const button = e.target; 
             const email = button.getAttribute("data-email");
 
             const admin = administradores.find(a => a.email === email);
 
             if (!admin) {
-                alert("Erro ao buscar administrador: administrador não encontrado.");
+                console.error("Erro ao buscar administrador: administrador não encontrado.");
+                showNotification('Erro ao buscar administrador: administrador não encontrado.', 'error');
+
                 return;
             }
 
@@ -224,7 +203,8 @@ document.getElementById("foto").addEventListener("change", function () {
             document.getElementById("formCadastroAdministrador").setAttribute("data-email", admin.email);
             document.getElementById("formCadastroAdministrador").style.display = "block";
         } catch (err) {
-            alert("Erro ao buscar administrador: " + err.message);
+            console.error("Erro ao buscar administrador:", err.message);
+            showNotification('Erro ao buscar administrador.', 'error');
         }
     }
 
@@ -232,12 +212,12 @@ document.getElementById("foto").addEventListener("change", function () {
         const button = e.target;
         const email = button.getAttribute("data-email");
 
-        const confirmacao = confirm(`Tem certeza que deseja excluir o administrador com o e-mail ${email}?`);
+        var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
         if (!confirmacao) return;
 
         const tokenData = JSON.parse(localStorage.getItem("authData"));
         if (!tokenData || !tokenData.accessToken) {
-            alert("Você precisa estar logado para excluir um administrador.");
+            showNotification('Você precisa estar logado para excluir um administrador.', 'error');
             return;
         }
 
@@ -258,7 +238,7 @@ document.getElementById("foto").addEventListener("change", function () {
             getAdministradores(); // Atualiza a lista
         } catch (error) {
             console.error("Erro ao excluir administrador:", error);
-            alert("Erro ao excluir administrador: " + error.message);
+            showNotification('Erro ao excluir administrador', 'error');
         }
     }
 });
@@ -284,7 +264,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     // Verifica se há token no localStorage
     const tokenData = JSON.parse(localStorage.getItem("authData"));
     if (!tokenData || !tokenData.accessToken) {
-        alert("Você precisa estar logado para cadastrar um administrador.");
+        showNotification('Você precisa estar logado para cadastrar um administrador.', 'error');
         return;
     }
 
@@ -366,162 +346,30 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             throw new Error(errorData.message || "Erro ao cadastrar/editar administrador.");
         }
 
-        alert(modo === "editar" ? "Administrador atualizado com sucesso!" : "Administrador cadastrado com sucesso!");
+        switch (modo) {
+            case "editar":
+                showNotification('Administrador atualizado com sucesso!', 'success');
+                break;
 
-        // Reseta o formulário e atualiza a lista
+            default:
+                showNotification('Administrador cadastrado com sucesso!', 'success');
+                break;
+        }
+     
         form.reset();
         form.removeAttribute("data-modo");
         form.removeAttribute("data-email");
         document.getElementById("previewFoto").src = "";
         form.classList.add("hidden");
 
-        getAdministradores(); // Atualiza a tabela
+        getAdministradores(); 
     } catch (error) {
         console.error("Erro:", error);
-        alert("Erro ao processar: " + error.message);
+        showNotification('Erro ao processar o Administrador', 'error');
     }
 });
 
-    function atualizarListaAdministrador() {
-        console.log(administrador);  // Adicione um log para verificar o conteúdo dos administradores
-        atualizarTabela(administrador);
-    }
-
-    administradorTableBody.addEventListener('click', function (event) {
-        if (event.target.classList.contains('view-profile')) {
-            const id = event.target.dataset.id;
-            visualizarPerfil(id);
-        }
-        if (event.target.classList.contains('delete')) {
-            const id = event.target.dataset.id;
-            showConfirmationModal('Tem certeza que deseja excluir este administrador?', () => {
-                excluirAdministrador(id);
-            });
-        } else if (event.target.classList.contains('edit')) {
-            const id = event.target.dataset.id;
-            editarAdministrador(id);
-        } else if (event.target.classList.contains('qrcode')) {
-            const id = event.target.dataset.id;
-            showQRCodeConfirmation(id);
-        }
-    });
-
-    function showQRCodeConfirmation(id) {
-        const administrador = administrador.find(administrador => administrador.id === id);
-        if (administrador) {
-            const message = `
-                <div style="text-align: center; padding: 20px; border-radius: 10px; background-color: #f9f9f9; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-                    <h3 style="color: #333; margin-bottom: 15px;">QRCode para Administrador</h3>
-                    <p style="font-size: 16px;"><strong>Nome:</strong> ${administrador.nome}</p>
-                    <p style="font-size: 16px;"><strong>Apartamento:</strong> ${administrador.apartamento}</p>
-                    <p style="font-size: 16px;"><strong>Telefone:</strong> ${administrador.telefone || 'Não informado'}</p>
-                    <p style="font-size: 16px; margin-top: 15px;">Deseja enviar o QRCode com os dados deste administrador para o WhatsApp?</p>
-                </div>
-            `;
-            showConfirmationModal(message, () => {
-                showNotification('QR Code enviado para o WhatsApp!', 'success');
-            });
-        } else {
-            showNotification('Administrador não encontrado.', 'error');
-        }
-    }
-
-    function excluirAdministrador(id) {
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const administrador = administrador.find(administrador=> administrador.id === id);
-        if (administrador) {
-            administrador.dataExclusao = timestamp;
-            administrador.excluidoPor = user;
-        }
-        administrador = administrador.filter(administrador => administrador.id !== id);
-        localStorage.setItem('administrador', JSON.stringify(administrador));
-        atualizarListaAdministrador();
-        showNotification('Administrador excluído com sucesso!', 'success');
-    }
-
-    function editarAdministrador(id) {
-        const administrador = administrador.find(administrador => administrador.id === id);
-        if (administrador) {
-            form.classList.remove("hidden");
-            document.getElementById('nome').value = administrador.nome;
-            document.getElementById('sobrenome').value = administrador.sobrenome;
-            document.getElementById('email').value = administrador.email;
-            document.getElementById('telefone').value = administrador.telefone;
-            document.getElementById('cpf').value = administrador.cpf;
-            document.getElementById('cep').value = administrador.cep;
-            document.getElementById('apartamento').value = administrador.apartamento;
-
-            document.getElementById('previewFoto').src = administrador.foto || '';
-
-            // Remove the old submit listener
-            administradorForm.removeEventListener('submit', handleFormSubmit);
-
-            // Add a new submit listener for editing
-            administradorForm.addEventListener('submit', function handleFormSubmit(event) {
-                event.preventDefault();
-                atualizarAdministrador(id);
-                // Remove the listener after it's used once
-                administradorForm.removeEventListener('submit', handleFormSubmit);
-            });
-
-        }
-    }
-
-    function atualizarAdministrador(id) {
-        const nome = document.getElementById('nome').value;
-        const sobrenome = document.getElementById('sobrenome').value;
-        const email = document.getElementById('email').value;
-        const telefone = document.getElementById('telefone').value;
-        const cpf = document.getElementById('cpf').value;
-        const cep = document.getElementById('cep').value;
-        const apartamento = document.getElementById('apartamento').value;
-
-
-        const fotoInput = document.getElementById('foto');
-        const fotoFile = fotoInput.files[0];
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-
-
-        let fotoURL = '';
-        if (fotoFile) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                fotoURL = reader.result;
-                administrador = administrador.map(administrador => {
-                    if (administrador.id === id) {
-                        return { ...administrador, nome, sobrenome, email, telefone, cpf, cep, apartamento, foto: fotoURL, dataEdicao: timestamp, editadoPor: user };
-                    }
-                    return administrador;
-                });
-
-                localStorage.setItem('administrador', JSON.stringify(administrador));
-                atualizarListaAdministrador();
-                administradorForm.style.display = 'none';
-                administradorForm.reset();
-                document.getElementById('previewFoto').src = '';
-                document.getElementById('uploadIcon').style.display = 'block';
-                showNotification('Administrador atualizado com sucesso!', 'success');
-            }
-            reader.readAsDataURL(fotoFile);
-        } else {
-            administrador = administrador.map(administrador=> {
-                if (administrador.id === id) {
-                    return { ...administrador, nome, sobrenome, email, telefone, cpf, cep, apartamento, dataEdicao: timestamp, editadoPor: user };
-                }
-                return administrador;
-            });
-
-            localStorage.setItem('administrador', JSON.stringify(administrador));
-            atualizarListaAdministrador();
-            administradorForm.style.display = 'none';
-            administradorForm.reset();
-            document.getElementById('previewFoto').src = '';
-            document.getElementById('uploadIcon').style.display = 'block';
-            showNotification('Administradoratualizado com sucesso!', 'success');
-        }
-    }
+//#endregion
 
     document.getElementById('foto').addEventListener('change', function() {
         const file = this.files[0];
@@ -542,13 +390,13 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     pesquisaInput.addEventListener('input', function () {
         const termoPesquisa = this.value.toLowerCase();
         const filtroOpcao = document.getElementById('filtroOpcao').value;
-        const filtroValor = termoPesquisa; // Usar o termo de pesquisa como valor do filtro
+        const filtroValor = termoPesquisa; 
 
-        let resultadosPesquisa = administrador;
+        let resultadosPesquisa = administradores;
 
         if (filtroOpcao && filtroValor) {
-            resultadosPesquisa = resultadosPesquisa.filter(administrador=> {
-                const valorAdministrador = administrador[filtroOpcao]?.toLowerCase() || '';
+            resultadosPesquisa = resultadosPesquisa.filter(administradores=> {
+                const valorAdministrador = administradores[filtroOpcao]?.toLowerCase() || '';
                 return valorAdministrador.includes(filtroValor);
             });
         }
@@ -853,366 +701,6 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         } else {
             showNotification('Visitante não encontrado.', 'error');
         }
-    }
-
-    // Reports Elements
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    const reportTypeSelect = document.getElementById('reportType');
-    const generateReportButton = document.querySelector('.generate-report-button');
-    const reportInfoDiv = document.querySelector('.report-info');
-    const generatedFileContainer = document.querySelector('.generated-file-container');
-
-    // Event listener for report type selection
-    if (reportTypeSelect) {
-        reportTypeSelect.addEventListener('change', function () {
-            const selectedValue = this.value;
-            let infoText = '';
-
-            switch (selectedValue) {
-                case 'all':
-                    infoText = 'Gera um relatório abrangente com todos os dados cadastrados de visitantes, moradores e entregas, incluindo informações sobre edições e exclusões.';
-                    break;
-                case 'visitantes':
-                    infoText = 'Gera um relatório específico com os dados de visitantes cadastrados.';
-                    break;
-                case 'moradores':
-                    infoText = 'Gera um relatório específico com os dados dos moradores cadastrados.';
-                    break;
-                case 'entregas':
-                    infoText = 'Gera um relatório específico com os dados de entregas registradas.';
-                    break;
-                default:
-                    infoText = 'Selecione um tipo de relatório para visualizar as informações.';
-            }
-
-            reportInfoDiv.textContent = infoText;
-            reportInfoDiv.style.display = 'block';
-        });
-    }
-
-    // Event listener for generating report
-    if (generateReportButton) {
-        generateReportButton.addEventListener('click', () => {
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            const reportType = reportTypeSelect.value;
-
-            if (!startDate || !endDate) {
-                showNotification('Por favor, selecione as datas de início e término.', 'error');
-                return;
-            }
-
-            // Check date range
-            const startDateObj = new Date(startDate);
-            const endDateObj = new Date(endDate);
-            const today = new Date();
-
-            // Calculate the difference in months
-            let monthsDifference = (endDateObj.getFullYear() - startDateObj.getFullYear()) * 12;
-            monthsDifference -= startDateObj.getMonth();
-            monthsDifference += endDateObj.getMonth();
-
-            if (monthsDifference > 6) {
-                showNotification('O período máximo para extrair relatórios é de 6 meses.', 'error');
-                return;
-            }
-
-            if (endDateObj > today) {
-                showNotification('Não é possível extrair relatórios para datas futuras.', 'error');
-                return;
-            }
-
-            generateReport(startDate, endDate, reportType);
-        });
-    }
-
-    function generateReport(startDate, endDate, reportType) {
-        // Pegar dados do localStorage
-        const visitantes = JSON.parse(localStorage.getItem('visitantes')) || [];
-        const moradores = JSON.parse(localStorage.getItem('moradores')) || [];
-        const entregas = JSON.parse(localStorage.getItem('entregas')) || [];
-        const perfis = JSON.parse(localStorage.getItem('perfis')) || [];
-
-        // Filtrar os dados com base no intervalo de datas
-        const filteredVisitantes = filterDataByDate(visitantes, startDate, endDate, 'dataCadastro');
-        const filteredMoradores = filterDataByDate(moradores, startDate, endDate, 'dataCadastro');
-        const filteredEntregas = filterDataByDate(entregas, startDate, endDate, 'dataEntrega');
-
-        // Gerar o conteúdo do relatório com base no tipo de relatório
-        let reportContent = '';
-        switch (reportType) {
-            case 'all':
-                reportContent = generateAllReport(filteredVisitantes, filteredMoradores, filteredEntregas, perfis, startDate, endDate);
-                break;
-            case 'visitantes':
-                reportContent = generateVisitantesReport(filteredVisitantes, startDate, endDate);
-                break;
-            case 'moradores':
-                reportContent = generateMoradoresReport(filteredMoradores, startDate, endDate);
-                break;
-            case 'entregas':
-                reportContent = generateEntregasReport(filteredEntregas, startDate, endDate);
-                break;
-            default:
-                reportContent = '<p>Nenhum dado encontrado para o tipo de relatório selecionado.</p>';
-        }
-
-        // Exibir o relatório gerado
-        displayGeneratedReport(reportContent, reportType, startDate, endDate);
-
-        // Adicionar botões de download
-        addDownloadButtons(reportContent, reportType, startDate, endDate);
-    }
-
-
-    // Function to filter data by date range
-    // Função para filtrar os dados por intervalo de datas
-    function filterDataByDate(data, startDate, endDate, dateField) {
-        const start = new Date(startDate); // A data de início
-        const end = new Date(endDate); // A data de término
-
-        return data.filter(item => {
-            // Se a data do item não existir, ignorar esse item
-            if (!item[dateField]) return false;
-
-            // Converter a data armazenada no campo dateField para um objeto Date
-            const itemDate = new Date(item[dateField]);
-
-            // Comparar se a data do item está dentro do intervalo
-            return itemDate >= start && itemDate <= end;
-        });
-    }
-
-
-    // Function to generate report for all data
-    function generateAllReport(visitantes, moradores, entregas, perfis, startDate, endDate) {
-        let report = `<h2>Relatório Completo de ${startDate} a ${endDate}</h2>`;
-
-        report += '<h3>Visitantes</h3>';
-        if (visitantes.length > 0) {
-            report += '<ul>';
-            visitantes.forEach(visitante => {
-                report += '<li>';
-                report += `<p><strong>Visitante:</strong> ${visitante.nome}</p>`;
-                report += `<p><strong>Apartamento:</strong> ${visitante.apartamento}</p>`;
-                report += `<p><strong>Cadastrado em:</strong> ${visitante.dataCadastro}</p>`;
-                report += `<p><strong>Por:</strong> ${visitante.cadastradoPor}</p>`;
-                if (visitante.dataEdicao) {
-                    report += `<p>- <strong>Editado</strong> em: ${visitante.dataEdicao}, Por: ${visitante.editadoPor}</p>`;
-                }
-                if (visitante.dataExclusao) {
-                    report += `<p>- <strong>Excluído</strong> em: ${visitante.dataExclusao}, Por: ${visitante.excluidoPor}</p>`;
-                }
-                report += '</li>';
-            });
-            report += '</ul>';
-        } else {
-            report += '<p>Nenhum visitante cadastrado no período selecionado.</p>';
-        }
-
-        report += '<h3>Moradores</h3>';
-        if (moradores.length > 0) {
-            report += '<ul>';
-            moradores.forEach(morador => {
-                report += '<li>';
-                report += `<p><strong>Morador:</strong> ${morador.nomeMorador}</p>`;
-                report += `<p><strong>Apartamento:</strong> ${morador.apartamentoMorador}</p>`;
-                report += `<p><strong>Cadastrado em:</strong> ${morador.dataCadastro}</p>`;
-                report += `<p><strong>Por:</strong> ${morador.cadastradoPor}</p>`;
-                if (morador.dataEdicao) {
-                    report += `<p>- <strong>Editado</strong> em: ${morador.dataEdicao}, Por: ${morador.editadoPor}</p>`;
-                }
-                if (morador.dataExclusao) {
-                    report += `<p>- <strong>Excluído</strong> em: ${morador.dataExclusao}, Por: ${morador.excluidoPor}</p>`;
-                }
-                report += '</li>';
-            });
-            report += '</ul>';
-        } else {
-            report += '<p>Nenhum morador cadastrado no período selecionado.</p>';
-        }
-
-        report += '<h3>Entregas</h3>';
-        if (entregas.length > 0) {
-            report += '<ul>';
-            entregas.forEach(entrega => {
-                report += '<li>';
-                report += `<p><strong>Entrega para:</strong> ${entrega.destinatario}</p>`;
-                report += `<p><strong>Empresa:</strong> ${entrega.empresa}</p>`;
-                report += `<p><strong>Apartamento:</strong> ${entrega.apartamento}</p>`;
-                report += `<p><strong>Cadastrado em:</strong> ${entrega.dataCadastro}</p>`;
-                report += `<p><strong>Por:</strong> ${entrega.cadastradoPor}</p>`;
-                if (entrega.dataEdicao) {
-                    report += `<p>- <strong>Editado</strong> em: ${entrega.dataEdicao}, Por: ${entrega.editadoPor}</p>`;
-                }
-                if (entrega.dataExclusao) {
-                    report += `<p>- <strong>Excluído</strong> em: ${entrega.dataExclusao}, Por: ${entrega.excluidoPor}</p>`;
-                }
-                report += '</li>';
-            });
-            report += '</ul>';
-        } else {
-            report += '<p>Nenhuma entrega registrada no período selecionado.</p>';
-        }
-
-        report += '<h3>Acessos</h3>';
-        if (perfis.length > 0) {
-            report += '<ul>';
-            perfis.forEach(perfil => {
-                report += '<li>';
-                report += `<p><strong>Nome:</strong> ${perfil.nomeAcesso}</p>`;
-                report += `<p><strong>Tipo:</strong> ${perfil.tipoPerfil}</p>`;
-                report += `<p><strong>Email:</strong> ${perfil.emailAcesso}</p>`;
-                report += '</li>';
-            });
-            report += '</ul>';
-        } else {
-            report += '<p>Nenhum acesso registrado no período selecionado.</p>';
-        }
-
-        return report;
-    }
-
-    // Function to display the generated report
-    function displayGeneratedReport(reportContent, reportType, startDate, endDate) {
-        generatedFileContainer.innerHTML = `
-            <div class="generated-file">
-                <p>Relatório de ${reportType} de ${startDate} a ${endDate}:</p>
-            </div>
-        `;
-    }
-
-    // Function to add download buttons (HTML and PDF)
-    function addDownloadButtons(reportContent, reportType, startDate, endDate) {
-        const htmlButton = document.createElement('button');
-        htmlButton.textContent = 'Download HTML';
-        htmlButton.classList.add('report-button');
-        htmlButton.style.backgroundColor = '#5cb85c'; // Green color
-        htmlButton.style.borderColor = '#4cae4c';
-        htmlButton.addEventListener('click', () => downloadHTML(reportContent, reportType, startDate, endDate));
-
-        const xlsxButton = document.createElement('button');
-        xlsxButton.textContent = 'Download XLSX';
-        xlsxButton.classList.add('report-button');
-        xlsxButton.style.backgroundColor = '#f0ad4e'; // Orange color
-        xlsxButton.style.borderColor = '#eea236';
-        xlsxButton.addEventListener('click', () => downloadXLSX(reportContent, reportType, startDate, endDate));
-
-        const visualizeButton = document.createElement('button');
-        visualizeButton.textContent = 'Visualizar Relatório';
-        visualizeButton.classList.add('report-button');
-        visualizeButton.style.backgroundColor = '#5bc0de'; // Light Blue color
-        visualizeButton.style.borderColor = '#46b8da';
-        visualizeButton.addEventListener('click', () => visualizeReport(reportContent, reportType, startDate, endDate));
-
-        generatedFileContainer.appendChild(visualizeButton);
-        generatedFileContainer.appendChild(htmlButton);
-        generatedFileContainer.appendChild(xlsxButton);
-    }
-
-    // Function to visualize the report in a modal
-    function visualizeReport(reportContent, reportType, startDate, endDate) {
-        const modal = document.createElement('div');
-        modal.classList.add('modal');
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 800px; overflow: auto;">
-                <h2>Relatório de ${reportType} (${startDate} - ${endDate})</h2>
-                <div style="margin-bottom: 20px; max-height: 400px; overflow: auto; border: 1px solid #ccc; padding: 10px;">
-                    ${reportContent}
-                </div>
-                <button class="close-modal">Fechar</button>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        modal.style.display = 'block';
-
-        modal.querySelector('.close-modal').addEventListener('click', () => {
-            modal.style.display = 'none';
-            modal.remove();
-        });
-    }
-
-    // Function to download report as HTML
-    function downloadHTML(reportContent, reportType, startDate, endDate) {
-        const filename = `relatorio_${reportType}_${startDate}_${endDate}.html`;
-        // Basic HTML structure with styles
-        const styledReportContent = `
-            <!DOCTYPE html>
-            <html lang="pt-BR">
-            <head>
-                <meta charset="UTF-8">
-                <title>Relatório de ${reportType} (${startDate} - ${endDate})</title>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    h2, h3 { color: #333; }
-                    p { margin-bottom: 5px; }
-                    strong { font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                ${reportContent}
-            </body>
-            </html>
-        `;
-
-        const blob = new Blob([styledReportContent], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // Function to download report as XLSX
-    async function downloadXLSX(reportContent, reportType, startDate, endDate) {
-        // Dynamically import xlsx
-        const XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs');
-
-        // Prepare data for XLSX
-        const wb = XLSX.utils.book_new();
-        const ws_name = "Relatório";
-
-        // Extract data from reportContent (assuming it's HTML)
-        const extractTableData = (reportContent) => {
-            const tableData = [];
-            const sections = reportContent.split('<h3>');
-
-            sections.forEach(section => {
-                if (!section) return;
-
-                const sectionTitleMatch = section.match(/^(.*?)<\/h3>/);
-                const sectionTitle = sectionTitleMatch ? sectionTitleMatch[1] : "Dados";
-
-                tableData.push([sectionTitle]); // Section Title
-                tableData.push([]); // Empty row for spacing
-
-                // Extract data rows from the section
-                const dataRows = section.split('<p>');
-                dataRows.forEach(row => {
-                    if (!row) return;
-
-                    const rowData = row.replace(/<[^>]*>/g, '').split(': '); // Clean up HTML tags
-                    if (rowData.length > 1) {
-                        tableData.push(rowData); // Data Row
-                    }
-                });
-                tableData.push([]); // Empty row after each section
-            });
-
-            return tableData;
-        };
-
-        const extractedData = extractTableData(reportContent);
-
-        const ws = XLSX.utils.aoa_to_sheet(extractedData);
-
-        XLSX.utils.book_append_sheet(wb, ws, ws_name);
-        XLSX.writeFile(wb, `relatorio_${reportType}_${startDate}_${endDate}.xlsx`);
     }
 
     const cadastrarMoradorBtn = document.getElementById('cadastrarMorador');
