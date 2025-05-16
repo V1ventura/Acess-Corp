@@ -5,7 +5,6 @@
     <title>Sistema de Cadastro de Acesso à Portaria</title>
     <link rel="stylesheet" href="adm.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="adm.js" type="module"></script>
     <script type="importmap">
         {
             "imports": {
@@ -13,6 +12,7 @@
             }
         }
     </script>
+    <script src="adm.js" type="module"></script>
 </head>
 <body>
     <div class="container">
@@ -28,7 +28,7 @@
                 <li data-section="moradores"><i class="fas fa-home"></i><span> Moradores</span></li>
                 <li data-section="entregas"><i class="fas fa-box"></i><span> Entregas</span></li>
               <li data-section="relatorios"><i class="fas fa-file"></i><span>Relatórios</span></li>
-              <li data-section="acessos"><i class="fas fa-user-lock"></i><span>Acessos</span></li>
+              <li data-section="porteiros"><i class="fas fa-user-lock"></i><span>Porteiros</span></li>
 
             </ul>
             <ul style="margin-top: auto;">
@@ -37,14 +37,13 @@
         </nav>
         <main class="content">
             <section id="administrador" class="section active">
-                <h1>Administrador
-                </h1>
+                <h1>Administrador</h1>
                 <div style="margin-bottom: 10px;">
                     <button id="cadastrarAdministrador">Cadastrar Administrador</button>
                 </div>
-                <div id="cadastroForm" class="form-container" style="display: none;">
-                    <h2>Cadastro do Administrador</h2>
-                    <form id="administradorForm">
+                <div id="administradorForm" class="form-container" style="display: none;">
+                    <h2>Cadastro de Administrador</h2>
+                    <form id="formCadastroAdministrador" class="hidden">
                         <div class="circular-image-container">
                             <img id="previewFoto" src="" alt="" class="circular-image">
                             <label for="foto">
@@ -62,20 +61,20 @@
                         <label for="email">Email:</label>
                         <input type="email" id="email" name="email"><br><br>
 
+                        <label for="senha">Senha:</label>
+                        <input type="text" id="senha" name="senha"><br><br>
+
                         <label for="telefone">Telefone:</label>
-                        <input type="tel" id="telefone" name="telefone" required><br><br>
-
-                        <label for="cep">Cep:</label>
-                        <input type="text" id="cep" name="cep"><br><br>
-
-                        <label for="apartamento">Apartamento:</label>
-                        <input type="text" id="apartamento" name="apartamento"><br><br>
+                        <input type="tel" id="telefone" name="telefone"><br><br>
 
                         <label for="cpf">CPF:</label>
                         <input type="text" id="cpf" name="cpf"><br><br>
 
-                        <label for="senha">Senha:</label>
-                        <input type="text" id="senha" name="senha"><br><br>
+                        <label for="cep">CEP:</label>
+                        <input type="text" id="cep" name="cep"><br><br>
+
+                        <label for="apartamento">Apartamento:</label>
+                        <input type="text" id="apartamento" name="apartamento" required><br><br>
 
                         <button type="submit">Salvar</button>
                         <button type="button" id="gerarQrCode">Gerar QR Code</button>
@@ -93,16 +92,18 @@
                     </select>
                 </div>
                 <div id="listaAdministrador">
-                    <h2>Administradores Cadastrados</h2>
+                    <h2>Administrador Cadastrados</h2>
                     <table id="administradorTable">
                         <thead>
                             <tr>
                                 <th>Nome</th>
+                                <th>Sobrenome</th>
+                                <th>Email</th>
                                 <th>Apartamento</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="administradorTableBody">
                         </tbody>
                     </table>
                 </div>
@@ -128,23 +129,23 @@
                     <label for="nomeMorador">Nome:</label>
                     <input type="text" id="nomeMorador" name="nomeMorador" required><br><br>
 
-                    <label for="sobrenomeMorador">Sobrenome:</label>
-                    <input type="text" id="sobrenomeMorador" name="sobrenomeMorador" required><br><br>
-
                     <label for="emailMorador">Email:</label>
                     <input type="email" id="emailMorador" name="emailMorador"><br><br>
 
-                    <label for="telefoneMorador">Telefone:</label>
-                    <input type="tel" id="telefoneMorador" name="telefoneMorador"><br><br>
+                    <label for="apartamentoMorador">Apartamento:</label>
+                    <input type="text" id="apartamentoMorador" name="apartamentoMorador" required><br><br>
+
+                    <label for="rgMorador">RG:</label>
+                    <input type="text" id="rgMorador" name="rgMorador"><br><br>
 
                     <label for="cpfMorador">CPF:</label>
                     <input type="text" id="cpfMorador" name="cpfMorador"><br><br>
 
-                    <label for="cepMorador">CEP:</label>
-                    <input type="text" id="cepMorador" name="cepMorador"><br><br>
+                    <label for="telefoneMorador">Telefone:</label>
+                    <input type="tel" id="telefoneMorador" name="telefoneMorador"><br><br>
 
-                    <label for="apartamentoMorador">Apartamento:</label>
-                    <input type="text" id="apartamentoMorador" name="apartamentoMorador" required><br><br>
+                    <label for="dataNascimentoMorador">Data de Nascimento:</label>
+                    <input type="date" id="dataNascimentoMorador" name="dataNascimentoMorador"><br><br>
 
                     <button type="submit">Salvar</button>
                     <button type="button" id="cancelarCadastroMorador">Cancelar</button>
@@ -254,7 +255,7 @@
 
                       <select id="reportType" class="report-select">
                           <option value="all">Todos os Dados Cadastrados</option>
-                          <option value="administradores">Administradores</option>
+                          <option value="visitantes">Visitantes</option>
                           <option value="moradores">Moradores</option>
                           <option value="entregas">Entregas</option>
                       </select>
@@ -269,52 +270,55 @@
 
                       </div>
                   </section>
-          <section id="acessos" class="section">
-            <h1>Acessos</h1>
-            <div style="margin-bottom: 10px;">
-                <button id="criarPerfilBtn">Cadastrar Porteiro</button>
-            </div>
+                  <!-- porteiro.html -->
+<section id="porteiros" class="section active"> 
+    <h1>Porteiro</h1>
+    <div style="margin-bottom: 10px;">
+        <button id="porteiroBtn">Cadastrar Porteiro</button>
+    </div>
 
-            <div class="form-container" id="cadastroAcessoForm" style="display: none;">
-                <h2>Porteiro</h2>
-                <form id="acessoForm">
+    <div class="form-container" id="cadastroPorteiroForm" style="display: none;">
+        <h2>Cadastro do Porteiro</h2>
+        <form id="porteiroForm">
+            <label for="nomePorteiro">Nome:</label>
+            <input type="text" id="nomePorteiro" name="nomePorteiro" required><br><br>
 
+            <label for="sobrenomePorteiro">Sobrenome:</label>
+            <input type="text" id="sobrenomePorteiro" name="sobrenomePorteiro" required><br><br>
 
-                    <label for="nomePorteiro">Nome:</label>
-                    <input type="text" id="nomePorteiro" name="nomePorteiro" required><br><br>
+            <label for="emailPorteiro">Email:</label>
+            <input type="email" id="emailPorteiro" name="emailPorteiro" required><br><br>
 
-                    <label for="sobrenomePorteiro">Sobrenome:</label>
-                    <input type="text" id="sobrenomePorteiro" name="sobrenomePorteiro" required><br><br>
+            <label for="cpfPorteiro">CPF:</label>
+            <input type="text" id="cpfPorteiro" name="cpfPorteiro" required><br><br>
 
-                    <label for="emailPorteiro">Email:</label>
-                    <input type="email" id="emailPorteiro" name="emailPorteiro"><br><br>
+            <label for="cepPorteiro">CEP:</label>
+            <input type="text" id="cepPorteiro" name="cepPorteiro" required><br><br>
 
-                    <label for="telefonePorteiro">Telefone:</label>
-                    <input type="tel" id="telefonePorteiro" name="telefonePorteiro" required><br><br>
+            <label for="senhaPorteiro">Senha:</label>
+            <input type="password" id="senhaPorteiro" name="senhaPorteiro" required><br>
+            <div id="passwordStrengthIndicator" style="height: 10px; width: 100%; background-color: transparent; transition: background-color 0.3s;"></div><br>
 
-                    <label for="cpfPorteiro">CPF:</label>
-                    <input type="text" id="cpfPorteiro" name="cpfPorteiro"><br><br>
+            <label for="confirmarSenha">Confirmar Senha:</label>
+            <input type="password" id="confirmarSenha" name="confirmarSenha" required><br><br>
 
-                    <label for="cepPorteiro">Cep:</label>
-                    <input type="text" id="cepPorteiro" name="cepPorteiro"><br><br>
+            <button type="submit">Salvar</button>
+            <button type="button" id="cancelarCadastroPorteiro">Cancelar</button>
+        </form>
+    </div>
 
-                    <label for="senhaPorteiro">Senha:</label>
-                    <input type="text" id="senha" name="senhaPorteiro"><br><br>
+    <div id="listaPorteiro">
+        <h2>Porteiros Cadastrados</h2>
+        <div id="perfisContainer" class="perfis-container"></div>
+    </div>
+</section>
+<section data-section="sair" id="sair" class="section">
+    <a href="../login/login.html">
+        <button class="fas fa-sign-out-alt"></button>
+    </a>
+    
+</section>
+</div>
+</section>
 
-                    <button type="submit">Salvar</button>
-                    <button type="button" id="cancelarCadastroAcesso">Cancelar</button>
-                </form>
-            </div>
-            <div id="listaAcessos">
-                <h2>Perfis Criados</h2>
-                <div id="perfisContainer" class="perfis-container">
-                </div>
-            </div>
-          </section>
-          <section id="sair" class="section">
-            <h1>Sair</h1>
-          </section>
-          </main>
-          </div>
-          </body>
-          </html>
+                
