@@ -290,7 +290,7 @@ body {
   text-decoration: underline; /* Adiciona sublinhado ao passar o mouse */
 }
 
-#entregasTable {
+.entityTable {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
@@ -299,40 +299,40 @@ body {
   border-radius: 8px;
   overflow: hidden;
 }
- #entregasTable th {
+ .entityTable th {
    background-color: #152e56;
    color: #ffffff; /* Mantém o texto dos cabeçalhos branco */
  }
 
- #entregasTable td {
+.entityTable td {
    color: #000000; /* Deixa o texto das células normais preto */
  }
 
 
-#entregasTable th,
-#entregasTable td {
+.entityTable th,
+.entityTable td {
   border: 1px solid #bdbdbd;
   padding: 12px 10px;
   text-align: left;
 }
 
-#entregasTable th {
+.entityTable th {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-#entregasTable tr:nth-child(even) {
+.entityTable tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-#entregasTable .actions {
+.entityTable .actions {
   display: flex;
   gap: 8px;
   justify-content: center;
 }
 
-#entregasTable .actions button {
+.entityTable .actions button {
   padding: 8px 16px;
   border: none;
   cursor: pointer;
@@ -340,16 +340,16 @@ body {
   transition: transform 0.2s ease;
 }
 
-#entregasTable .actions button:hover {
+.entityTable .actions button:hover {
   transform: scale(1.05);
 }
 
-#entregasTable .actions .edit {
+.entityTable .actions .edit {
   background-color: #28a745;
   color: white;
 }
 
-#entregasTable .actions .delete {
+.entityTable .actions .delete {
   background-color: #dc3545;
   color: white;
 }
@@ -525,7 +525,7 @@ body {
   max-width: 200px;
 }
 
-#pesquisaEntrega {
+.pesquisaEntity {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -533,35 +533,12 @@ body {
   margin-bottom: 20px;
 }
 
-#pesquisaEntrega label {
+.pesquisaEntity label {
   margin: 0;
 }
 
-#pesquisaEntrega input[type="text"],
-#pesquisaEntrega select {
-  flex-grow: 1;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  background-color: #ededed;
-  color: #495057;
-  border-radius: 5px;
-  max-width: 200px;
-}
-
-#pesquisaMorador {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-#pesquisaMorador label {
-  margin: 0;
-}
-
-#pesquisaMorador input[type="text"],
-#pesquisaMorador select {
+.pesquisaEntity input[type="text"],
+.pesquisaEntity select {
   flex-grow: 1;
   padding: 10px;
   border: 1px solid #ced4da;
@@ -1007,7 +984,7 @@ button:hover {
   }
 }
 
-.perfis-container {
+.porteiro-container {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
@@ -1068,17 +1045,18 @@ button:hover {
   color: white;
 }
 
-#acessoForm label {
+#moradorForm label {
   display: block;
   margin-top: 15px;
   color: #495057;
   font-weight: 500;
 }
 
-#acessoForm input[type="text"],
-#acessoForm input[type="email"],
-#acessoForm input[type="password"],
-#acessoForm select {
+#formCadastroAdministrador input[type="text"],
+#formCadastroAdministrador input[type="email"],
+#formCadastroAdministrador input[type="tel"],
+#formCadastroAdministrador input[type="date"],
+#formCadastroAdministrador input[type="file"] {
   width: 100%;
   padding: 10px;
   margin-top: 8px;
@@ -1091,15 +1069,16 @@ button:hover {
   box-sizing: border-box;
 }
 
-#acessoForm input[type="text"]:focus,
-#acessoForm input[type="email"]:focus,
-#acessoForm input[type="password"]:focus,
-#acessoForm select:focus {
+#formCadastroAdministrador input[type="text"]:focus,
+#formCadastroAdministrador input[type="email"]:focus,
+#formCadastroAdministrador input[type="tel"]:focus,
+#formCadastroAdministrador input[type="date"]:focus,
+#formCadastroAdministrador input[type="file"]:focus {
   border-color: #80bdff;
   outline: none;
 }
 
-#acessoForm button {
+#formCadastroAdministrador button {
   padding: 12px 20px;
   border: none;
   cursor: pointer;
@@ -1110,11 +1089,61 @@ button:hover {
   transition: background-color 0.3s ease;
 }
 
-#acessoForm button:hover {
+#formCadastroAdministrador button:hover {
   background-color: #0056b3;
 }
 
-#acessoForm button[type="button"] {
+#formCadastroAdministrador button[type="button"] {
+  background-color: #6c757d;
+}
+
+#porteiroForm label {
+  display: block;
+  margin-top: 15px;
+  color: #495057;
+  font-weight: 500;
+}
+
+#porteiroForm input[type="text"],
+#porteiroForm input[type="email"],
+#porteiroForm input[type="password"],
+#porteiroForm select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  color: #495057;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+#porteiroForm input[type="text"]:focus,
+#porteiroForm input[type="email"]:focus,
+#porteiroForm input[type="password"]:focus,
+#porteiroForm select:focus {
+  border-color: #80bdff;
+  outline: none;
+}
+
+#porteiroForm button {
+  padding: 12px 20px;
+  border: none;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+#porteiroForm button:hover {
+  background-color: #0056b3;
+}
+
+#porteiroForm button[type="button"] {
   background-color: #6c757d;
 }
 
