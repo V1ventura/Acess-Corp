@@ -62,7 +62,7 @@ if (loginForm) {
                 }
 
                 // Se tiver permissão, salvar o token e redirecionar
-                localStorage.setItem('authToken', token);
+                localStorage.setItem("authData", JSON.stringify(data.data));
                 showNotification('Login realizado com sucesso!');
 
                 // Redireciona após login bem-sucedido

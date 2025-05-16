@@ -1,16 +1,17 @@
 import { v4 as uuidv4 } from "https://jspm.dev/uuid";
 
 document.addEventListener('DOMContentLoaded', () => {
+
     const menuItems = document.querySelectorAll('.menu li');
     const sections = document.querySelectorAll('.section');
     const cadastrarAdministradorBtn = document.getElementById('cadastrarAdministrador');
-    const cadastroForm = document.getElementById('cadastroForm');
+    const administradorForm = document.getElementById('administradorForm');
     const cancelarCadastroBtn = document.getElementById('cancelarCadastro');
     const listaAdministrador = document.getElementById('listaAdministrador');
     const administradorTableBody = document.querySelector('#administradorTable tbody');
     const pesquisaInput = document.getElementById('pesquisa');
     const gerarQrCodeBtn = document.getElementById('gerarQrCode');
-
+    const administradorSection = document.getElementById("administrador");
     // Entregas Elements
     const cadastrarEntregaBtn = document.getElementById('cadastrarEntrega');
     const cadastroEntregaForm = document.getElementById('cadastroEntregaForm');
@@ -39,10 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return cpf;
     }
 
+    cadastrarAdministradorBtn.addEventListener("click", () => {
+    document.getElementById("formCadastroAdministrador").style.display = "block"; // mostra o formulário
+});
+
+
     // Function to format phone number
     function formatPhoneNumber(phoneNumber) {
         phoneNumber = phoneNumber.replace(/\D/g, ''); // Remove non-numeric characters
-        phoneNumber = phoneNumber.replace(/^(\d{2})(\d)/g, '($1) $2'); // Add area code parentheses
         phoneNumber = phoneNumber.replace(/(\d{4})(\d)/, '$1-$2'); // Add hyphen after the first 4 digits
         return phoneNumber;
     }
@@ -72,9 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showSection(sectionId) {
-        sections.forEach(section => section.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
+        const activeSection = document.querySelector('.section.active');
+        if (activeSection) {
+            activeSection.classList.remove('active');
+        }
+    
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        } else {
+            console.warn('Seção não encontrada:', sectionId);
+        }
     }
+    
 
     menuItems.forEach(item => {
         item.addEventListener('click', () => {
@@ -83,76 +98,289 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    cadastrarAdministradorBtn.addEventListener('click', () => {
-        cadastroForm.style.display = 'block';
-    });
+    document.getElementById("cadastrarAdministrador").addEventListener("click", function () {
+    document.getElementById("administradorForm").style.display = "block";
+});
 
-    cancelarCadastroBtn.addEventListener('click', () => {
-        cadastroForm.style.display = 'none';
-        administradorForm.reset();
-        // Clear the photo preview and show the upload icon
-        document.getElementById('previewFoto').src = '';
-        document.getElementById('uploadIcon').style.display = 'block';
-    });
+document.getElementById("cancelarCadastro").addEventListener("click", function () {
+    document.getElementById("administradorForm").style.display = "none";
+});
 
-    administradorForm.addEventListener('submit', function (event) {
-        event.preventDefault();
+document.getElementById("foto").addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById("previewFoto").src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
-        const nome = document.getElementById('nome').value;
-        const sobrenome = document.getElementById('sobrenome').value;
-        const email = document.getElementById('email').value;
-        const telefone = document.getElementById('telefone').value;
-        const cep = document.getElementById('cep').value;
-        const apartamento = document.getElementById('apartamento').value;
-        const cpf = document.getElementById('cpf').value;
-        const senha = document.getElementById('senha').value;
-        const fotoInput = document.getElementById('foto').files[0];
+    const tabelaBody = document.querySelector("#administradorTableBody");
 
-        if (!nome || !apartamento) {
-            alert('Nome e Apartamento são campos obrigatórios.');
+    if (!administradorSection || !tabelaBody) {
+        console.error("Elemento da seção ou da tabela não encontrado.");
+        return;
+    }
+
+            let administradores = [];
+
+    async function getAdministradores() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                alert("Você precisa estar logado para visualizar administradores.");
+                return;
+            }
+
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/administrator/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar administradores.");
+            }
+
+            const result = await response.json();
+
+            administradores = Array.isArray(result.data) ? result.data : [];
+
+            tabelaBody.innerHTML = "";
+        
+            console.log("Resultado da API:", result);
+            console.log("Dados dos administradores:", result.data);
+
+            administradores.forEach((admin, index) => {
+            if (!admin || typeof admin !== "object") {
+                console.warn(`Administrador inválido no índice ${index}:`, admin);
+                return;
+            }
+
+            const tr = document.createElement("tr");
+
+            const tdNome = document.createElement("td");
+            tdNome.textContent = admin.name;
+
+            const tdSobrenome = document.createElement("td");
+            tdSobrenome.textContent = admin.lastName;
+
+            const tdEmail = document.createElement("td");
+            tdEmail.textContent = admin.email;
+
+            const tdApartamento = document.createElement("td");
+            tdApartamento.textContent = admin.houseNumber;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-email="${admin.email}">Editar</button>
+                <button class="remover-btn" data-email="${admin.email}">Remover</button>
+            `;
+
+            tr.appendChild(tdNome);
+            tr.appendChild(tdSobrenome);
+            tr.appendChild(tdEmail);
+            tr.appendChild(tdApartamento);
+            tr.appendChild(tdAcoes);
+
+            tabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar administradores:", error);
+        }
+    }
+
+    tabelaBody.addEventListener("click", async function (e) {
+    if (e.target.classList.contains("editar-btn")) {
+    try {
+
+        const button = e.target; // <-- precisa ter isso para pegar o botão clicado
+            const email = button.getAttribute("data-email");
+
+            const admin = administradores.find(a => a.email === email);
+
+            if (!admin) {
+                alert("Erro ao buscar administrador: administrador não encontrado.");
+                return;
+            }
+
+        console.log("Administrador encontrado:", admin);
+            // Preenche o formulário com os dados
+            document.getElementById("nome").value = admin.name;
+            document.getElementById("sobrenome").value = admin.lastName;
+            document.getElementById("email").value = admin.email;
+            document.getElementById("telefone").value = formatPhoneNumber(admin.phone);
+            document.getElementById("cpf").value = formatCPF(admin.cpf);
+            document.getElementById("cep").value = admin.cep;
+            document.getElementById("apartamento").value = admin.houseNumber;
+
+            document.getElementById("formCadastroAdministrador").setAttribute("data-modo", "editar");
+            document.getElementById("formCadastroAdministrador").setAttribute("data-email", admin.email);
+            document.getElementById("formCadastroAdministrador").style.display = "block";
+        } catch (err) {
+            alert("Erro ao buscar administrador: " + err.message);
+        }
+    }
+
+       if (e.target.classList.contains("remover-btn")) {
+        const button = e.target;
+        const email = button.getAttribute("data-email");
+
+        const confirmacao = confirm(`Tem certeza que deseja excluir o administrador com o e-mail ${email}?`);
+        if (!confirmacao) return;
+
+        const tokenData = JSON.parse(localStorage.getItem("authData"));
+        if (!tokenData || !tokenData.accessToken) {
+            alert("Você precisa estar logado para excluir um administrador.");
             return;
         }
 
-        let fotoURL = '';
-        if (fotoInput) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                fotoURL = reader.result;
-                salvarAdministrador(nome, sobrenome, email,telefone, cep, apartamento, cpf, senha, fotoURL);
-            }
-            reader.readAsDataURL(fotoInput);
-        } else {
-            salvarAdministrador(nome, sobrenome, email, telefone, cep, apartamento, cpf, senha, fotoURL);
-        }
+        try {
+            const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${tokenData.accessToken}`
+                }
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Erro ao excluir administrador.");
+            }
+
+            alert("Administrador excluído com sucesso!");
+            getAdministradores(); // Atualiza a lista
+        } catch (error) {
+            console.error("Erro ao excluir administrador:", error);
+            alert("Erro ao excluir administrador: " + error.message);
+        }
+    }
+});
+    
+    const observer = new MutationObserver(() => {
+        if (administradorSection.classList.contains("active")) {
+            getAdministradores();
+        }
     });
 
-    function salvarAdministrador(nome, sobrenome, email, telefone, cep, apartamento, cpf, senha, fotoURL) {
-        const id = uuidv4();
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const novoAdministrador = {
-            id: id,
-            nome: nome,
-            sobrenome: sobrenome,
-            email: email,
-            telefone: telefone,
-            cep: cep,
-            apartamento: apartamento,
-            cpf: cpf,
-            senha: senha,
-            foto: fotoURL,
-            dataCadastro: timestamp,
-            cadastradoPor: user
+
+    observer.observe(administradorSection, { attributes: true, attributeFilter: ["class"] });
+
+    if (administradorSection.classList.contains("active")) {
+        getAdministradores();
+    }
+
+    console.log(JSON.parse(localStorage.getItem("authData")));
+
+document.getElementById("formCadastroAdministrador").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    // Verifica se há token no localStorage
+    const tokenData = JSON.parse(localStorage.getItem("authData"));
+    if (!tokenData || !tokenData.accessToken) {
+        alert("Você precisa estar logado para cadastrar um administrador.");
+        return;
+    }
+
+    const accessToken = tokenData.accessToken;
+
+    const nome = document.getElementById("nome").value;
+    const sobrenome = document.getElementById("sobrenome").value;
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+    const telefone = document.getElementById("telefone").value.replace(/\D/g, '');
+    const cpf = document.getElementById("cpf").value.replace(/\D/g, '');
+    const cep = document.getElementById("cep").value.replace(/\D/g, '');
+    const apartamento = document.getElementById("apartamento").value;
+    const fotoInput = document.getElementById("foto");
+
+   function convertFileToBase64(fileInput) {
+    return new Promise((resolve, reject) => {
+        if (!fileInput.files || !fileInput.files[0]) {
+            resolve(""); // Sem arquivo, retorna string vazia
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            resolve(reader.result);
         };
 
-        administrador.push(novoAdministrador);
-        localStorage.setItem('administrador', JSON.stringify(administrador));
-        atualizarListaAdministrador();
-        cadastroForm.style.display = 'none';
-        administradorForm.reset();
-        showNotification('administrador cadastrado com sucesso!', 'success');
+        reader.onerror = (error) => {
+            reject(error);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+    let imageBase64 = await convertFileToBase64(fotoInput);
+
+    const imageUpload = imageBase64.split(",")[1]; // mantém só o conteúdo base64
+
+    const adminData = {
+        name: nome,
+        lastName: sobrenome,
+        email: email,
+        phone: telefone,
+        cpf: cpf,
+        cep: cep,
+        houseNumber: parseInt(apartamento),
+        image: fotoInput.files[0]?.name || "",
+        imageUpload: imageUpload,
+        password: senha,
+    };
+
+    try {
+        let url = "https://localhost:7100/users/v1/administrator/register";
+        let method = "POST";
+
+        const form = document.getElementById("formCadastroAdministrador");
+        const modo = form.getAttribute("data-modo");
+
+               if (modo === "editar") {
+            const emailOriginal = form.getAttribute("data-email");
+            url = `https://localhost:7100/users/v1/administrator/update/${emailOriginal}`;
+            method = "PUT";
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(adminData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Erro ao cadastrar/editar administrador.");
+        }
+
+        alert(modo === "editar" ? "Administrador atualizado com sucesso!" : "Administrador cadastrado com sucesso!");
+
+        // Reseta o formulário e atualiza a lista
+        form.reset();
+        form.removeAttribute("data-modo");
+        form.removeAttribute("data-email");
+        document.getElementById("previewFoto").src = "";
+        form.classList.add("hidden");
+
+        getAdministradores(); // Atualiza a tabela
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao processar: " + error.message);
     }
+});
 
     function atualizarListaAdministrador() {
         console.log(administrador);  // Adicione um log para verificar o conteúdo dos administradores
@@ -201,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function excluirAdministrador(id) {
         const timestamp = new Date().toLocaleString();
         const user = "System"; // Replace with actual user authentication if available
-        const administrador = administrador.find(administrador => administrador.id === id);
+        const administrador = administrador.find(administrador=> administrador.id === id);
         if (administrador) {
             administrador.dataExclusao = timestamp;
             administrador.excluidoPor = user;
@@ -215,15 +443,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function editarAdministrador(id) {
         const administrador = administrador.find(administrador => administrador.id === id);
         if (administrador) {
-            cadastroForm.style.display = 'block';
+            form.classList.remove("hidden");
             document.getElementById('nome').value = administrador.nome;
             document.getElementById('sobrenome').value = administrador.sobrenome;
             document.getElementById('email').value = administrador.email;
             document.getElementById('telefone').value = administrador.telefone;
+            document.getElementById('cpf').value = administrador.cpf;
             document.getElementById('cep').value = administrador.cep;
             document.getElementById('apartamento').value = administrador.apartamento;
-            document.getElementById('cpf').value = administrador.cpf;
-            document.getElementById('senha').value = administrador.senha;
+
             document.getElementById('previewFoto').src = administrador.foto || '';
 
             // Remove the old submit listener
@@ -232,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add a new submit listener for editing
             administradorForm.addEventListener('submit', function handleFormSubmit(event) {
                 event.preventDefault();
-                atualizaradministrador(id);
+                atualizarAdministrador(id);
                 // Remove the listener after it's used once
                 administradorForm.removeEventListener('submit', handleFormSubmit);
             });
@@ -245,10 +473,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const sobrenome = document.getElementById('sobrenome').value;
         const email = document.getElementById('email').value;
         const telefone = document.getElementById('telefone').value;
+        const cpf = document.getElementById('cpf').value;
         const cep = document.getElementById('cep').value;
         const apartamento = document.getElementById('apartamento').value;
-        const cpf = document.getElementById('cpf').value;
-        const senha = document.getElementById('senha').value;
+
+
         const fotoInput = document.getElementById('foto');
         const fotoFile = fotoInput.files[0];
         const timestamp = new Date().toLocaleString();
@@ -262,14 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 fotoURL = reader.result;
                 administrador = administrador.map(administrador => {
                     if (administrador.id === id) {
-                        return { ...administrador, nome, sobrenome, email, telefone, cep, apartamento, cpf, senha, foto: fotoURL, dataEdicao: timestamp, editadoPor: user };
+                        return { ...administrador, nome, sobrenome, email, telefone, cpf, cep, apartamento, foto: fotoURL, dataEdicao: timestamp, editadoPor: user };
                     }
                     return administrador;
                 });
 
                 localStorage.setItem('administrador', JSON.stringify(administrador));
                 atualizarListaAdministrador();
-                cadastroForm.style.display = 'none';
+                administradorForm.style.display = 'none';
                 administradorForm.reset();
                 document.getElementById('previewFoto').src = '';
                 document.getElementById('uploadIcon').style.display = 'block';
@@ -277,20 +506,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             reader.readAsDataURL(fotoFile);
         } else {
-            administrador = administrador.map(administrador => {
+            administrador = administrador.map(administrador=> {
                 if (administrador.id === id) {
-                    return { ...administrador, nome, sobrenome, email, telefone, cep, apartamento, cpf, senha, dataEdicao: timestamp, editadoPor: user };
+                    return { ...administrador, nome, sobrenome, email, telefone, cpf, cep, apartamento, dataEdicao: timestamp, editadoPor: user };
                 }
                 return administrador;
             });
 
             localStorage.setItem('administrador', JSON.stringify(administrador));
             atualizarListaAdministrador();
-            cadastroForm.style.display = 'none';
+            administradorForm.style.display = 'none';
             administradorForm.reset();
             document.getElementById('previewFoto').src = '';
             document.getElementById('uploadIcon').style.display = 'block';
-            showNotification('Administrador atualizado com sucesso!', 'success');
+            showNotification('Administradoratualizado com sucesso!', 'success');
         }
     }
 
@@ -318,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let resultadosPesquisa = administrador;
 
         if (filtroOpcao && filtroValor) {
-            resultadosPesquisa = resultadosPesquisa.filter(administrador => {
+            resultadosPesquisa = resultadosPesquisa.filter(administrador=> {
                 const valorAdministrador = administrador[filtroOpcao]?.toLowerCase() || '';
                 return valorAdministrador.includes(filtroValor);
             });
@@ -350,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function atualizarTabela(administradorExibidos) {
         administradorTableBody.innerHTML = '';
-        administradorExibidos.forEach(administrador => {
+        administradorExibidos.forEach(administrador=> {
             const isDeleted = administrador.dataExclusao !== undefined;
             const row = document.createElement('tr');
 
@@ -361,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             row.innerHTML = `
                 <td>
-                    <span class="view-profile" data-id="${administrador.id}" style="${isDeleted ? 'text-decoration: line-through;' : ''}">${visitante.nome}</span>
+                    <span class="view-profile" data-id="${administrador.id}" style="${isDeleted ? 'text-decoration: line-through;' : ''}">${administrador.nome}</span>
                 </td>
                 <td>${administrador.apartamento}</td>
                 <td class="actions">
@@ -1320,253 +1549,89 @@ function showConfirmationModal(message, onConfirm) {
 export { showNotification, showConfirmationModal };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const acessoForm = document.getElementById('acessoForm');
-    const criarPerfilBtn = document.getElementById('criarPerfilBtn');
-    const cadastroAcessoForm = document.getElementById('cadastroAcessoForm');
-    const cancelarCadastroAcessoBtn = document.getElementById('cancelarCadastroAcesso');
+    const porteiroForm = document.getElementById('porteiroForm');
+    const porteiroBtn = document.getElementById('porteiroBtn');
+    const cadastroPorteiroForm = document.getElementById('cadastroPorteiroForm');
+    const cancelarCadastroPorteiroBtn = document.getElementById('cancelarCadastroPorteiro');
     const perfisContainer = document.getElementById('perfisContainer');
 
-    let perfis = JSON.parse(localStorage.getItem('perfis')) || [];
+    let porteiros = JSON.parse(localStorage.getItem('porteiros')) || [];
 
-    if (criarPerfilBtn) {
-        criarPerfilBtn.addEventListener('click', () => {
-            cadastroAcessoForm.style.display = 'block';
-        });
-    }
-
-    if (cancelarCadastroAcessoBtn) {
-        cancelarCadastroAcessoBtn.addEventListener('click', () => {
-            cadastroAcessoForm.style.display = 'none';
-            acessoForm.reset();
-            // Reset submit button text
-            const submitButton = acessoForm.querySelector('button[type="submit"]');
-            if(submitButton) submitButton.textContent = 'Criar Perfil';
-        });
-    }
-
-    if (acessoForm) {
-        acessoForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            const nomePorteiro = document.getElementById('nomePorteiro').value;
-            const sobrenomePorteiro= document.getElementById('sobrenomePorteiro').value;
-            const emailPorteiro = document.getElementById('emailPorteiro').value;
-            const telefonePorteiro = document.getElementById('telefonePorteiro').value;
-            const cpfPorteiro= document.getElementById('cpfPorteiro').value;
-            const cepPorteiro= document.getElementById('cepPorteiro').value;
-            const senhaPorteiro= document.getElementById('senhaPorteiro').value;
-
-            const novoPerfil = {
-                id: uuidv4(),
-                nomePorteiro: nomePorteiro,
-                sobrenomePorteiro: sobrenomePorteiro,
-                emailPorteiro: emailPorteiro,
-                telefonePorteiro: telefonePorteiro,
-                cpfPorteiro: cpfPorteiro,
-                cepPorteiro: emailPorteiro,
-                senhaPorteiro: senhaPorteiro
-            };
-
-            if (novoPerfil == Null) {
-                showNotification('Por favor, preencha todos os campos.', 'error');
-                return;
-            }
-
-            const passwordStrength = checkPasswordStrength(senhaPorteiro);
-            if (passwordStrength !== 'forte') {
-                showNotification(`Senha muito fraca. Nível de segurança: ${passwordStrength}.`, 'error');
-                return;
-            }
-
-            if (!isValidEmail(emailPorteiro)) {
-                showNotification('Por favor, insira um email válido.', 'error');
-                return;
-            }
-
-
-            showNotification(`Porteiro criado com sucesso!`, 'success');
-
-            acessoForm.reset();
-            cadastroAcessoForm.style.display = 'none';
-
-            // Reset submit button text
-            const submitButton = acessoForm.querySelector('button[type="submit"]');
-            if(submitButton) submitButton.textContent = 'Salvar';
-
-            atualizarPerfis();
-        });
-    }
-
-    perfisContainer.addEventListener('click', function (event) {
-        if (event.target.classList.contains('edit')) {
-            const id = event.target.dataset.id;
-            editarAcesso(id);
-        } else if (event.target.classList.contains('delete')) {
-            const id = event.target.dataset.id;
-            excluirAcesso(id);
-        }
+    porteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'block';
     });
 
-    function editarAcesso(id) {
-        const perfil = perfis.find(perfil => perfil.id === id);
-        if (perfil) {
-            cadastroAcessoForm.style.display = 'block';
-            document.getElementById('nomePorteiro').value = perfil.nomePorteiro;
-            document.getElementById('sobrenomePorteiro').value = perfil.sobrenomePorteiro;
-            document.getElementById('emailPorteiro').value = perfil.emailPorteiro;
-            document.getElementById('telefonePorteiro').value = perfil.telefonePorteiro;
-            document.getElementById('cpfPorteiro').value = perfil.cpfPorteiro;
-            document.getElementById('cepPorteiro').value = perfil.cepPorteiro;
-            document.getElementById('senhaPorteiro').value = perfil.senhaPorteiro;
-            
+    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'none';
+        porteiroForm.reset();
+    });
 
-            // Trigger the password strength check to update the indicator
-            checkPasswordStrength(perfil.senhaPorteiro);
-            updatePasswordStrengthIndicator(perfil.senhaPorteiro);
+    porteiroForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-            // Change submit button to "Atualizar Perfil"
-            const submitButton = acessoForm.querySelector('button[type="submit"]');
-            if(submitButton) submitButton.textContent = 'Atualizar Perfil';
+        const nome = document.getElementById('nomePorteiro').value.trim();
+        const telefone = document.getElementById('telefonePorteiro').value.trim();
+        const email = document.getElementById('emailPorteiro').value.trim();
+        const senha = document.getElementById('senhaPorteiro').value;
+        const confirmarSenha = document.getElementById('confirmarSenha').value;
 
-            // Store the original text of the submit button
-            if(submitButton) submitButton.dataset.originalText = 'Atualizar Perfil';
-
-            // Remove the old submit listener
-            acessoForm.removeEventListener('submit', handleFormSubmit);
-
-            // Add a new submit listener for editing
-            acessoForm.addEventListener('submit', function handleFormSubmit(event) {
-                event.preventDefault();
-                atualizarAcesso(id);
-
-                // Restore the original text and listener after it's used once
-                acessoForm.removeEventListener('submit', handleFormSubmit);
-                if(submitButton) submitButton.textContent = 'Criar Perfil';
-
-                // Add a new submit listener
-                acessoForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                });
-            });
+        if (!nome || !email || !senha || !confirmarSenha) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
         }
-    }
 
-    function atualizarAcesso(id) {
-        const nomePorteiro = document.getElementById('nomePorteiro').value;
-        const sobrenomePorteiro = document.getElementById('sobrenomePorteiro').value;
-        const emailPorteiro = document.getElementById('emailPorteiro').value;
-        const telefonePorteiro = document.getElementById('telefonePorteiro').value;
-        const cpfPorteiro = document.getElementById('cpfPorteiro').value;
-        const cepPorteiro = document.getElementById('cepPorteiro').value;
-        const senhaPorteiro = document.getElementById('senhaPorteiro').value;
+        if (senha !== confirmarSenha) {
+            alert('As senhas não coincidem.');
+            return;
+        }
 
-        const atualizarPerfil = {
-            id: uuidv4(),
-            nomePorteiro: nomePorteiro,
-            sobrenomePorteiro: sobrenomePorteiro,
-            emailPorteiro: emailPorteiro,
-            telefonePorteiro: telefonePorteiro,
-            cpfPorteiro: cpfPorteiro,
-            cepPorteiro: emailPorteiro,
-            senhaPorteiro: senhaPorteiro
+        const novoPorteiro = {
+            id: crypto.randomUUID(),
+            nome,
+            telefone,
+            email,
+            senha
         };
-        // Basic validation
-        if (atualizarPerfil == null ) {
-            showNotification('Por favor, preencha todos os campos.', 'error');
-            return;
-        }
 
-        // Password strength validation
-        const passwordStrength = checkPasswordStrength(senhaPorteiro);
-        if (passwordStrength !== 'forte') {
-            showNotification(`Senha muito fraca. Nível de segurança: ${passwordStrength}.`, 'error');
-            return;
-        }
+        porteiros.push(novoPorteiro);
+        localStorage.setItem('porteiros', JSON.stringify(porteiros));
 
-        // Password match validation
-        if (senhaPorteiro !== confirmarSenha) {
-            showNotification('As senhas não coincidem.', 'error');
-            return;
-        }
+        alert('Porteiro cadastrado com sucesso!');
+        porteiroForm.reset();
+        cadastroPorteiroForm.style.display = 'none';
+        renderizarPorteiros();
+    });
 
-        // Email format validation
-        if (!isValidEmail(emailPorteiro)) {
-            showNotification('Por favor, insira um email válido.', 'error');
-            return;
-        }
-
-        perfis = perfis.map(perfil => {
-            if (perfil.id === id) {
-                return { ...perfil, nomePorteiro, emailPorteiro, senhaPorteiro };
-            }
-            return perfil;
-        });
-
-        localStorage.setItem('perfis', JSON.stringify(perfis));
-        atualizarPerfis();
-        cadastroAcessoForm.style.display = 'none';
-        acessoForm.reset();
-
-        // Reset submit button text
-        const submitButton = acessoForm.querySelector('button[type="submit"]');
-        if(submitButton) submitButton.textContent = 'Criar Perfil';
-
-        showNotification('Porteiro atualizado com sucesso!', 'success');
-    }
-
-    function excluirAcesso(id) {
-        showConfirmationModal('Tem certeza que deseja excluir este acesso?', () => {
-            perfis = perfis.filter(perfil => perfil.id !== id);
-            localStorage.setItem('perfis', JSON.stringify(perfis));
-            atualizarPerfis();
-            showNotification('Acesso excluído com sucesso!', 'success');
-        });
-    }
-
-    function atualizarPerfis() {
+    function renderizarPorteiros() {
         perfisContainer.innerHTML = '';
-        perfis.forEach(perfil => {
+        porteiros.forEach(p => {
             const card = document.createElement('div');
-            card.classList.add('perfil-card');
+            card.className = 'porteiro-card';
             card.innerHTML = `
-                <h3>${perfil.nomeAcesso}</h3>
-                <p><strong>Tipo:</strong> ${perfil.tipoPerfil}</p>
-                <p><strong>Email:</strong> ${perfil.emailAcesso}</p>
+                <strong>${p.nome}</strong><br>
+                Email: ${p.email}<br>
+                Telefone: ${p.telefone}<br>
                 <div class="actions">
-                    <button class="edit" data-id="${perfil.id}">Editar</button>
-                    <button class="delete" data-id="${perfil.id}">Excluir</button>
+                    <button data-id="${p.id}" class="delete">Excluir</button>
                 </div>
             `;
+            card.querySelector('.delete').addEventListener('click', () => {
+                excluirPorteiro(p.id);
+            });
             perfisContainer.appendChild(card);
         });
     }
 
-    function checkPasswordStrength(password) {
-        if (password.length < 8) {
-            return 'muito fraca';
+    function excluirPorteiro(id) {
+        if (confirm('Deseja realmente excluir este porteiro?')) {
+            porteiros = porteiros.filter(p => p.id !== id);
+            localStorage.setItem('porteiros', JSON.stringify(porteiros));
+            renderizarPorteiros();
         }
-        if (!/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
-            return 'fraca';
-        }
-        if (!/[0-9]/.test(password)) {
-            return 'moderada';
-        }
-        if (!/[!@#$%^&*]/.test(password)) {
-            return 'razoável';
-        }
-        return 'forte';
     }
 
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // Event listener to update password strength indicator
-    document.getElementById('senhaPorteiro').addEventListener('input', function() {
-        const password = this.value;
-        updatePasswordStrengthIndicator(password);
-    });
+    renderizarPorteiros();
+});
 
     function updatePasswordStrengthIndicator(password) {
         const strength = checkPasswordStrength(password);
@@ -1598,7 +1663,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     atualizarPerfis();
-});
+
 // Try to get the username from local storage
 let username = localStorage.getItem('username') || config.defaultUsername;
 
@@ -1621,11 +1686,18 @@ const userNameSpan = document.getElementById('user-name');
 userNameSpan.textContent = `Olá, ${username}!`;
 
 // Add event listener to the "Edit Profile" link
-const editProfileLink = document.getElementById('edit-profile');
-editProfileLink.addEventListener('click', (event) => {
-    event.preventDefault();
-    openEditProfileModal();
+document.addEventListener('DOMContentLoaded', () => {
+    const editProfileLink = document.getElementById('edit-profile');
+    if (editProfileLink) {
+        editProfileLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openEditProfileModal();
+        });
+    } else {
+        console.warn('#edit-profile não encontrado no DOM.');
+    }
 });
+
 
 function openEditProfileModal() {
     const modal = document.createElement('div');
@@ -1685,6 +1757,9 @@ function openEditProfileModal() {
             reader.readAsDataURL(file);
         }
     });
+
+    document.body.appendChild(modal);
+
 }
 
 function closeEditProfileModal() {
