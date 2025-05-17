@@ -184,16 +184,16 @@
                         <input type="text" id="destinatario" name="destinatario" required><br><br>
 
                         <label for="dataEntrega">Data de Entrega:</label>
-                        <input type="date" id="dataEntrega" name="dataEntrega"><br><br>
-
-                        <label for="horaEntrega">Hora de Entrega:</label>
-                        <input type="time" id="horaEntrega" name="horaEntrega"><br><br>
+                        <input type="datetime-local" id="dataEntrega" name="dataEntrega"><br><br>
 
                         <label for="empresa">Empresa:</label>
                         <input type="text" id="empresa" name="empresa" required><br><br>
 
                         <label for="entregador">Entregue Para:</label>
                         <input type="text" id="entregador" name="entregador"><br><br>
+
+                        <label for="cepEntrega">Cep:</label>
+                        <input type="text" id="cepEntrega" name="cepEntrega" required><br><br>
 
                         <label for="apartamentoEntrega">Apartamento:</label>
                         <input type="text" id="apartamentoEntrega" name="apartamentoEntrega" required><br><br>
@@ -210,7 +210,6 @@
                     <select id="filtroEntregaOpcao" name="filtroEntregaOpcao">
                         <option value="destinatario">Destinatário</option>
                         <option value="dataEntrega">Data</option>
-                        <option value="horaEntrega">Hora</option>
                         <option value="empresa">Empresa</option>
                         <option value="entregador">Entregue Para</option>
                         <option value="apartamento">Apartamento</option>
@@ -223,20 +222,19 @@
                             <tr>
                                 <th>Destinatário</th>
                                 <th>Data</th>
-                                <th>Hora</th>
                                 <th>Empresa</th>
                                 <th>Entregue para:</th>
                                 <th>Apartamento</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="entregasTableBody">
                         </tbody>
                     </table>
                 </div>
             </section>
-                  <!-- porteiro.html -->
-<section id="porteiros" class="section active"> 
+
+            <section id="porteiros" class="section"> 
     <h1>Porteiro</h1>
     <div style="margin-bottom: 10px;">
         <button id="porteiroBtn">Cadastrar Porteiro</button>
