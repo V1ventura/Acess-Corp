@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let entregas = [];
     let administradores = [];
+    let moradores = [];
 
     const cpfInput = document.getElementById('cpf');
     const telefoneInput = document.getElementById('telefone');
@@ -429,37 +430,10 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
                 entrega.empresa.toLowerCase() === filtroEmpresa
             );
         }
-
-        atualizarTabelaEntregas(resultadosPesquisa);
     });
 
-    function atualizarTabela(administradorExibidos) {
-        administradorTableBody.innerHTML = '';
-        administradorExibidos.forEach(administrador=> {
-            const isDeleted = administrador.dataExclusao !== undefined;
-            const row = document.createElement('tr');
-
-            // Aplica estilo se o administrador foi excluído
-            if (isDeleted) {
-                row.classList.add('deleted-row'); // Adicione a classe para indicar exclusão
-            }
-
-            row.innerHTML = `
-                <td>
-                    <span class="view-profile" data-id="${administrador.id}" style="${isDeleted ? 'text-decoration: line-through;' : ''}">${administrador.nome}</span>
-                </td>
-                <td>${administrador.apartamento}</td>
-                <td class="actions">
-                    <button class="edit" data-id="${administrador.id}" ${isDeleted ? 'disabled' : ''}>Editar</button>
-                    <button class="delete" data-id="${administrador.id}" ${isDeleted ? 'disabled' : ''}>${isDeleted ? 'Excluído' : 'Excluir'}</button>
-                    <button class="qrcode" data-id="${administrador.id}" ${isDeleted ? 'disabled' : ''}>QRCode</button>
-                </td>
-            `;
-            administradorTableBody.appendChild(row);
-        });
-    }
-
-    // Entregas Functions
+  
+//#region entrega actions
     cadastrarEntregaBtn.addEventListener('click', () => {
         cadastroEntregaForm.style.display = 'block';
     });
@@ -712,9 +686,9 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         showNotification('Erro ao processar a entrega', 'error');
     }
 });
-
+//#endregion
    
-    // Function to show notification messages
+//#region notifications
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.classList.add('notification', type);
@@ -769,123 +743,277 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             modal.remove();
         });
     }
+//#endregion
 
-    function visualizarPerfil(id) {
-        const visitante = visitantes.find(visitante => visitante.id === id);
-        if (visitante) {
-            // Create a modal or a separate section to display the profile
-            const profileModal = document.createElement('div');
-            profileModal.classList.add('modal');
-            profileModal.innerHTML = `
-                <div class="modal-content">
-                    <h2>Perfil de Visitante</h2>
-                    <img src="${visitante.foto || ''}" alt="Foto do Visitante" style="width: 100px; height: 100px; border-radius: 50%;">
-                    <p><strong>Nome:</strong> ${visitante.nome}</p>
-                    <p><strong>Email:</strong> ${visitante.email || 'Não informado'}</p>
-                    <p><strong>Apartamento:</strong> ${visitante.apartamento}</p>
-                    <p><strong>RG:</strong> ${visitante.rg || 'Não informado'}</p>
-                    <p><strong>CPF:</strong> ${visitante.cpf || 'Não informado'}</p>
-                    <p><strong>Telefone:</strong> ${visitante.telefone || 'Não informado'}</p>
-                    <button class="close-modal">Fechar</button>
-                </div>
-            `;
-            document.body.appendChild(profileModal);
-            profileModal.style.display = 'block';
+    const moradorTabelaBody = document.querySelector("#moradoresTableBody");
+ async function getMoradores() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para visualizar um morador.', 'error');
+                return;
+            }
 
-            profileModal.querySelector('.close-modal').addEventListener('click', () => {
-                profileModal.style.display = 'none';
-                profileModal.remove();
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/residents/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
             });
-        } else {
-            showNotification('Visitante não encontrado.', 'error');
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar moradores.");
+            }
+
+            const result = await response.json();
+
+            moradores = Array.isArray(result.data) ? result.data : [];
+
+            moradorTabelaBody.innerHTML = "";
+        
+            moradores.forEach((morador, index) => {
+            if (!morador || typeof morador !== "object") {
+                console.warn(`Morador inválido no índice ${index}:`, morador);
+                return;
+            }
+
+            const tr = document.createElement("tr");
+
+            const tdNome = document.createElement("td");
+            tdNome.textContent = morador.name;
+
+            const tdSobrenome = document.createElement("td");
+            tdSobrenome.textContent = morador.lastName;
+
+            const tdEmail = document.createElement("td");
+            tdEmail.textContent = morador.email;
+
+            const tdApartamento = document.createElement("td");
+            tdApartamento.textContent = morador.houseNumber;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-email="${morador.email}">Editar</button>
+                <button class="remover-btn" data-email="${morador.email}">Remover</button>
+            `;
+
+            tr.appendChild(tdNome);
+            tr.appendChild(tdSobrenome);
+            tr.appendChild(tdEmail);
+            tr.appendChild(tdApartamento);
+            tr.appendChild(tdAcoes);
+
+            moradorTabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar moradores:", error);
         }
     }
 
-    const cadastrarMoradorBtn = document.getElementById('cadastrarMorador');
-    const cadastroMoradorForm = document.getElementById('cadastroMoradorForm');
-    const moradorForm = document.getElementById('moradorForm');
-    const cancelarCadastroMoradorBtn = document.getElementById('cancelarCadastroMorador');
-    const moradoresTableBody = document.querySelector('#moradoresTable tbody');
-    const pesquisaMoradorInput = document.getElementById('pesquisaMorador');
+    moradorTabelaBody.addEventListener("click", async function (e) {
+    if (e.target.classList.contains("editar-btn")) {
+        try {
+            const button = e.target; 
+            const email = button.getAttribute("data-email");
 
-    let moradores = JSON.parse(localStorage.getItem('moradores')) || [];
+            const morador = moradores.find(a => a.email === email);
 
-    cadastrarMoradorBtn.addEventListener('click', () => {
-        cadastroMoradorForm.style.display = 'block';
-    });
+            if (!morador) {
+                console.error("Erro ao buscar morador: morador não encontrado.");
+                showNotification('Erro ao buscar morador: morador não encontrado.', 'error');
 
-    cancelarCadastroMoradorBtn.addEventListener('click', () => {
-        cadastroMoradorForm.style.display = 'none';
-        moradorForm.reset();
-        document.getElementById('previewFotoMorador').src = '';
-        document.getElementById('uploadIconMorador').style.display = 'block';
-    });
+                return;
+            }
 
-    moradorForm.addEventListener('submit', function (event) {
-        event.preventDefault();
+        // TODO: MUDAR OS GETELEMENTBYID
+        console.log("Morador encontrado:", morador);
+            // Preenche o formulário com os dados
+            document.getElementById("nome").value = morador.name;
+            document.getElementById("sobrenome").value = morador.lastName;
+            document.getElementById("email").value = morador.email;
+            document.getElementById("telefone").value = formatPhoneNumber(morador.phone);
+            document.getElementById("cpf").value = formatCPF(morador.cpf);
+            document.getElementById("cep").value = admin.cep;
+            document.getElementById("apartamento").value = morador.houseNumber;
 
-        const nomeMorador = document.getElementById('nomeMorador').value;
-        const emailMorador = document.getElementById('emailMorador').value;
-        const apartamentoMorador = document.getElementById('apartamentoMorador').value;
-        const rgMorador = document.getElementById('rgMorador').value;
-        const cpfMorador = document.getElementById('cpfMorador').value;
-        const telefoneMorador = document.getElementById('telefoneMorador').value;
-        const dataNascimentoMorador = document.getElementById('dataNascimentoMorador').value;
-        const fotoMoradorInput = document.getElementById('fotoMorador').files[0];
+            document.getElementById("formCadastroAdministrador").setAttribute("data-modo", "editar");
+            document.getElementById("formCadastroAdministrador").setAttribute("data-email", morador.email);
+            document.getElementById("formCadastroAdministrador").style.display = "block";
+        } catch (err) {
+            console.error("Erro ao buscar administrador:", err.message);
+            showNotification('Erro ao buscar administrador.', 'error');
+        }
+    }
 
-        if (!nomeMorador || !apartamentoMorador) {
-            showNotification('Nome e Apartamento são campos obrigatórios.', 'error');
+       if (e.target.classList.contains("remover-btn")) {
+        const button = e.target;
+        const email = button.getAttribute("data-email");
+
+        const tokenData = JSON.parse(localStorage.getItem("authData"));
+        if (!tokenData || !tokenData.accessToken) {
+            showNotification('Você precisa estar logado para excluir um morador.', 'error');
             return;
         }
 
-        let fotoMoradorURL = '';
-        if (fotoMoradorInput) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                fotoMoradorURL = reader.result;
-                salvarMorador(nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, fotoMoradorURL);
-            }
-            reader.onerror = function (error) {
-                console.error('Erro ao ler a imagem:', error);
-                showNotification('Erro ao processar a imagem.', 'error');
-            };
-            reader.readAsDataURL(fotoMoradorInput);
-        } else {
-            salvarMorador(nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, fotoMoradorURL);
-        }
-    });
+        try {
+            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
+            // if (confirmacao.onConfirm())
+            { 
+                const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
+                    }
+                });
 
-    function salvarMorador(nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, fotoMoradorURL) {
-        const id = uuidv4();
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const novoMorador = {
-            id: id,
-            nomeMorador: nomeMorador,
-            emailMorador: emailMorador,
-            apartamentoMorador: apartamentoMorador,
-            rgMorador: rgMorador,
-            cpfMorador: cpfMorador,
-            telefoneMorador: telefoneMorador,
-            dataNascimentoMorador: dataNascimentoMorador,
-            fotoMorador: fotoMoradorURL,
-            dataCadastro: timestamp,
-            cadastradoPor: user
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao excluir morador.");
+                }
+
+                showNotification("Morador excluído com sucesso!", 'success');
+                getMoradores();
+            }
+
+        } catch (error) {
+            console.error("Erro ao excluir morador:", error);
+            showNotification('Erro ao excluir morador', 'error');
+        }
+    }
+});
+    
+getMoradores();
+
+
+    document.getElementById("cadastroMoradorForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const tokenData = JSON.parse(localStorage.getItem("authData"));
+    if (!tokenData || !tokenData.accessToken) {
+        showNotification('Você precisa estar logado para cadastrar um morador.', 'error');
+        return;
+    }
+
+    const accessToken = tokenData.accessToken;
+
+    const nome = document.getElementById("nomeMorador").value;
+    const sobrenome = document.getElementById("sobrenomeMorador").value;
+    const email = document.getElementById("emailMorador").value;
+    const telefone = document.getElementById("telefoneMorador").value.replace(/\D/g, '');
+    const cpf = document.getElementById("cpfMorador").value.replace(/\D/g, '');
+    const cep = document.getElementById("cepMorador").value.replace(/\D/g, '');
+    const apartamento = document.getElementById("apartamentoMorador").value;
+    const fotoInput = document.getElementById("fotoMorador");
+
+   function convertFileToBase64(fileInput) {
+    return new Promise((resolve, reject) => {
+        if (!fileInput.files || !fileInput.files[0]) {
+            resolve(""); // Sem arquivo, retorna string vazia
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            resolve(reader.result);
         };
 
-        moradores.push(novoMorador);
-        localStorage.setItem('moradores', JSON.stringify(moradores));
-        atualizarListaMoradores();
-        cadastroMoradorForm.style.display = 'none';
-        moradorForm.reset();
-        document.getElementById('previewFotoMorador').src = '';
-        document.getElementById('uploadIconMorador').style.display = 'block';
-        showNotification('Morador cadastrado com sucesso!', 'success');
-    }
+        reader.onerror = (error) => {
+            reject(error);
+        };
 
-    function atualizarListaMoradores() {
-        atualizarTabelaMoradores(moradores);
+        reader.readAsDataURL(file);
+    });
+}
+
+    let imageBase64 = await convertFileToBase64(fotoInput);
+
+    const imageUpload = imageBase64.split(",")[1]; 
+
+    const moradorData = {
+        name: nome,
+        lastName: sobrenome,
+        email: email,
+        phone: telefone,
+        cpf: cpf,
+        image: fotoInput.files[0]?.name || "",
+        imageUpload: imageUpload,
+        cep: cep,
+        houseNumber: parseInt(apartamento),
+    };
+
+    try {
+        let url = "https://localhost:7100/users/v1/residents/register";
+        let method = "POST";
+
+        const form = document.getElementById("cadastroMoradorForm");
+        const modo = form.getAttribute("data-modo");
+
+            if (modo === "editar") {
+            const emailOriginal = form.getAttribute("data-email");
+            url = `https://localhost:7100/users/v1//residents/update/${emailOriginal}`;
+            method = "PUT";
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(moradorData)
+        });
+
+            if (!response.ok) {
+
+                try {
+                    const errorData = await response.json();
+
+                    if (errorData.errors) {
+                        const allMessages = Object.values(errorData.errors).flat();
+                        errorMessage = allMessages.join("<br>");
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.title) {
+                        errorMessage = errorData.title;
+                    }
+                } catch (e) {
+                    const fallbackText = await response.text().catch(() => null);
+                    if (fallbackText) errorMessage = fallbackText;
+                }
+
+                showNotification(errorMessage, 'error');
+
+                throw new Error(errorMessage);
+            }
+
+        switch (modo) {
+            case "editar":
+                showNotification('Morador atualizado com sucesso!', 'success');
+                break;
+
+            default:
+                showNotification('Morador cadastrado com sucesso!', 'success');
+                break;
+        }
+     
+        form.reset();
+        form.removeAttribute("data-modo");
+        form.removeAttribute("data-email");
+        document.getElementById("previewFoto").src = "";
+        form.classList.add("hidden");
+
+        getMoradores(); 
+    } catch (error) {
+        console.error("Erro:", error);
+        showNotification('Erro ao processar o Morador', 'error');
     }
+});
+
 
     moradoresTableBody.addEventListener('click', function (event) {
         if (event.target.classList.contains('delete')) {
