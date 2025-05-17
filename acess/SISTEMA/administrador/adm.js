@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pesquisaInput = document.getElementById('pesquisa');
     const gerarQrCodeBtn = document.getElementById('gerarQrCode');
     const administradorSection = document.getElementById("administrador");
+    const entregaSection = document.getElementById("entregas");
     // Entregas Elements
     const cadastrarEntregaBtn = document.getElementById('cadastrarEntrega');
     const cadastroEntregaForm = document.getElementById('cadastroEntregaForm');
@@ -20,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const entregasTableBody = document.querySelector('#entregasTable tbody');
     const pesquisaEntregaInput = document.getElementById('pesquisaEntrega');
 
-    let entregas = JSON.parse(localStorage.getItem('entregas')) || [];
-    let administrador = JSON.parse(localStorage.getItem('administrador')) || [];
+    let entregas = [];
+    let administradores = [];
 
     const cpfInput = document.getElementById('cpf');
     const telefoneInput = document.getElementById('telefone');
@@ -104,8 +105,6 @@ document.getElementById("foto").addEventListener("change", function () {
 
     //#region Adm-Actions
     const tabelaBody = document.querySelector("#administradorTableBody");
-
-    let administradores = [];
 
     async function getAdministradores() {
         try {
@@ -212,9 +211,6 @@ document.getElementById("foto").addEventListener("change", function () {
         const button = e.target;
         const email = button.getAttribute("data-email");
 
-        var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-        if (!confirmacao) return;
-
         const tokenData = JSON.parse(localStorage.getItem("authData"));
         if (!tokenData || !tokenData.accessToken) {
             showNotification('Você precisa estar logado para excluir um administrador.', 'error');
@@ -222,20 +218,25 @@ document.getElementById("foto").addEventListener("change", function () {
         }
 
         try {
-            const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${tokenData.accessToken}`
-                }
-            });
+            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
+            // if (confirmacao.onConfirm())
+            { 
+                const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
+                    }
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao excluir administrador.");
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao excluir administrador.");
+                }
+
+                showNotification("Administrador excluído com sucesso!", 'success');
+                getAdministradores(); // Atualiza a lista
             }
 
-            alert("Administrador excluído com sucesso!");
-            getAdministradores(); // Atualiza a lista
         } catch (error) {
             console.error("Erro ao excluir administrador:", error);
             showNotification('Erro ao excluir administrador', 'error');
@@ -243,20 +244,7 @@ document.getElementById("foto").addEventListener("change", function () {
     }
 });
     
-    const observer = new MutationObserver(() => {
-        if (administradorSection.classList.contains("active")) {
-            getAdministradores();
-        }
-    });
-
-
-    observer.observe(administradorSection, { attributes: true, attributeFilter: ["class"] });
-
-    if (administradorSection.classList.contains("active")) {
-        getAdministradores();
-    }
-
-    console.log(JSON.parse(localStorage.getItem("authData")));
+getAdministradores();
 
 document.getElementById("formCadastroAdministrador").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -341,10 +329,30 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             body: JSON.stringify(adminData)
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao cadastrar/editar administrador.");
-        }
+            if (!response.ok) {
+
+                try {
+                    const errorData = await response.json();
+
+                    if (errorData.errors) {
+                        // Pega todas as mensagens do objeto 'errors' e junta
+                        const allMessages = Object.values(errorData.errors).flat();
+                        errorMessage = allMessages.join("<br>");
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.title) {
+                        errorMessage = errorData.title;
+                    }
+                } catch (e) {
+                    const fallbackText = await response.text().catch(() => null);
+                    if (fallbackText) errorMessage = fallbackText;
+                }
+
+                showNotification(errorMessage, 'error');
+
+
+                throw new Error(errorMessage);
+            }
 
         switch (modo) {
             case "editar":
@@ -461,161 +469,251 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         entregaForm.reset();
     });
 
-    entregaForm.addEventListener('submit', function (event) {
-        event.preventDefault();
 
-        const destinatario = document.getElementById('destinatario').value;
-        const dataEntrega = document.getElementById('dataEntrega').value;
-        const horaEntrega = document.getElementById('horaEntrega').value;
-        const empresa = document.getElementById('empresa').value;
-        const entregador = document.getElementById('entregador').value;
-        const apartamento = document.getElementById('apartamentoEntrega').value;
 
-        if (!destinatario || !empresa) {
-            alert('Destinatário e Empresa são campos obrigatórios.');
+    const entregaTabelaBody = document.querySelector("#entregasTableBody");
+     async function getEntregas() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para visualizar as entregas.', 'error');
+                return;
+            }
+
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/delivery/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar entregas.");
+            }
+
+            const result = await response.json();
+
+            entregas = Array.isArray(result.data) ? result.data : [];
+
+            entregaTabelaBody.innerHTML = "";
+        
+           entregas.forEach((entrega, index) => {
+            if (!entrega || typeof entrega !== "object") {
+                console.warn(`Entrega inválida no índice ${index}:`, entrega);
+                return;
+            }
+
+            console.log("Entregas recebidas:", result);
+
+            const tr = document.createElement("tr");
+
+            const tdReceiver = document.createElement("td");
+            tdReceiver.textContent = entrega.receiver;
+
+            const tdDeliveryDate = document.createElement("td");
+            tdDeliveryDate.textContent = new Date(entrega.deliveryDate).toLocaleString(); // Formata a data
+
+            const tdDeliveredTo = document.createElement("td");
+            tdDeliveredTo.textContent = entrega.deliveredTo;
+
+            const tdEnterprise = document.createElement("td");
+            tdEnterprise.textContent = entrega.enterprise;
+
+            const tdNumberHouse = document.createElement("td");
+            tdNumberHouse.textContent = entrega.numberHouse;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-id="${entrega.id}">Editar</button>
+                <button class="remover-btn" data-id="${entrega.id}">Remover</button>
+            `;
+
+            tr.appendChild(tdReceiver);
+            tr.appendChild(tdDeliveryDate);
+            tr.appendChild(tdDeliveredTo);
+            tr.appendChild(tdEnterprise);
+            tr.appendChild(tdNumberHouse);
+            tr.appendChild(tdAcoes);
+
+            entregaTabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar entregas:", error);
+        }
+    }
+
+    entregaTabelaBody.addEventListener("click", async function (e) {
+    if (e.target.classList.contains("editar-btn")) {
+        try {
+            const button = e.target; 
+            const id = button.getAttribute("data-id");
+
+            const entrega = entregas.find(a => a.id === id);
+
+            if (!entrega) {
+                console.error("Erro ao buscar entrega: entrega não encontrada.");
+                showNotification('Erro ao buscar entrega: entrega não encontrada.', 'error');
+
+                return;
+            }
+
+            document.getElementById("destinatario").value = entrega.receiver;
+            document.getElementById('dataEntrega').value = entrega.deliveryDate;
+            document.getElementById("empresa").value = entrega.enterprise;
+            document.getElementById("entregador").value = entrega.deliveredTo;
+            document.getElementById("cepEntrega").value = entrega.cep;
+            document.getElementById("apartamentoEntrega").value = entrega.numberHouse;
+
+            document.getElementById("cadastroEntregaForm").setAttribute("data-modo", "editar");
+            document.getElementById("cadastroEntregaForm").setAttribute("data-id", entrega.id);
+            document.getElementById("cadastroEntregaForm").style.display = "block";
+        } catch (err) {
+            console.error("Erro ao buscar entrega:", err.message);
+            showNotification('Erro ao buscar entrega.', 'error');
+        }
+    }
+
+       if (e.target.classList.contains("remover-btn")) {
+        const button = e.target;
+        const id = button.getAttribute("data-id");
+
+        const tokenData = JSON.parse(localStorage.getItem("authData"));
+        if (!tokenData || !tokenData.accessToken) {
+            showNotification('Você precisa estar logado para excluir uma entrega.', 'error');
             return;
         }
 
-        salvarEntrega(destinatario, dataEntrega, horaEntrega, empresa, entregador, apartamento);
-        cadastroEntregaForm.style.display = 'none';
-        entregaForm.reset();
+        try {
+            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
+            // if (confirmacao.onConfirm())
+                const response = await fetch(`https://localhost:7100/users/v1/delivery/exclude/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
+                    }
+                });
 
-    });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao excluir entrega.");
+                }
 
-    function salvarEntrega(destinatario, dataEntrega, horaEntrega, empresa, entregador, apartamento) {
-        const id = uuidv4();
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const novaEntrega = {
-            id: id,
-            destinatario: destinatario,
-            dataEntrega: dataEntrega,
-            horaEntrega: horaEntrega,
-            empresa: empresa,
-            entregador: entregador,
-            apartamento: apartamento,
-            dataCadastro: timestamp,
-            cadastradoPor: user
-        };
+                showNotification("Entrega excluída com sucesso!", 'success');
+                getEntregas(); 
 
-        entregas.push(novaEntrega);
-        localStorage.setItem('entregas', JSON.stringify(entregas));
-        atualizarListaEntregas();
-        cadastroEntregaForm.style.display = 'none';
-        entregaForm.reset();
-        showNotification('Entrega cadastrada com sucesso!', 'success');
-    }
-
-    function atualizarListaEntregas() {
-        atualizarTabelaEntregas(entregas);
-    }
-
-    entregasTableBody.addEventListener('click', function (event) {
-        if (event.target.classList.contains('delete')) {
-            const id = event.target.dataset.id;
-            showConfirmationModal('Tem certeza que deseja excluir esta entrega?', () => {
-                excluirEntrega(id);
-            });
-        } else if (event.target.classList.contains('edit')) {
-            const id = event.target.dataset.id;
-            editarEntrega(id);
+        } catch (error) {
+            console.error("Erro ao excluir entrega:", error);
+            showNotification('Erro ao excluir entrega', 'error');
         }
-    });
+    }});
 
-    function excluirEntrega(id) {
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const entrega = entregas.find(entrega => entrega.id === id);
-        if (entrega) {
-            entrega.dataExclusao = timestamp;
-            entrega.excluidoPor = user;
-        }
-        entregas = entregas.filter(entrega => entrega.id !== id);
-        localStorage.setItem('entregas', JSON.stringify(entregas));
-        atualizarListaEntregas();
-        showNotification('Entrega excluída com sucesso!', 'success');
+    getEntregas();
+
+
+    document.getElementById("cadastroEntregaForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const tokenData = JSON.parse(localStorage.getItem("authData"));
+    if (!tokenData || !tokenData.accessToken) {
+        showNotification('Você precisa estar logado para cadastrar uma entrega.', 'error');
+        return;
     }
 
-    function editarEntrega(id) {
-        const entrega = entregas.find(entrega => entrega.id === id);
-        if (entrega) {
-            cadastroEntregaForm.style.display = 'block';
-            document.getElementById('destinatario').value = entrega.destinatario;
-            document.getElementById('dataEntrega').value = entrega.dataEntrega;
-            document.getElementById('horaEntrega').value = entrega.horaEntrega;
-            document.getElementById('empresa').value = entrega.empresa;
-            document.getElementById('entregador').value = entrega.entregador;
-            document.getElementById('apartamentoEntrega').value = entrega.apartamento;
+    const accessToken = tokenData.accessToken;
 
-            // Remove the old submit listener
-            entregaForm.removeEventListener('submit', handleFormSubmit);
+    const data = document.getElementById('dataEntrega').value;
+    const destinatario = document.getElementById('destinatario').value;
+    const dataEntrega = new Date(data).toISOString();
+    const cepEntrega = document.getElementById('cepEntrega').value.replace(/\D/g, '');
+    const empresa = document.getElementById('empresa').value;
+    const entregador = document.getElementById('entregador').value;
+    const apartamento = document.getElementById('apartamentoEntrega').value;
 
-            // Add a new submit listener for editing
-            entregaForm.addEventListener('submit', function handleFormSubmit(event) {
-                event.preventDefault();
-                atualizarEntrega(id);
-                // Remove the listener after it's used once
-                entregaForm.removeEventListener('submit', handleFormSubmit);
-            });
+    let entregaData = {
+        id: uuidv4(),
+        receiver: destinatario,
+        deliveryDate: dataEntrega,
+        enterprise: empresa,
+        deliveredTo: entregador,
+        numberHouse: parseInt(apartamento),
+        cep: cepEntrega
+    };
 
+    try {
+        let url = "https://localhost:7100/users/v1/delivery/register";
+        let method = "POST";
+
+        const form = document.getElementById("entregaForm");
+        const modo = form.getAttribute("data-modo");
+
+            if (modo === "editar") {
+            const idOriginal = form.getAttribute("data-id");
+            entregaData.id = idOriginal;
+            url = `https://localhost:7100/users/v1/delivery/update/${idOriginal}`;
+            method = "PUT";
         }
-    }
 
-    function atualizarEntrega(id) {
-        const destinatario = document.getElementById('destinatario').value;
-        const dataEntrega = document.getElementById('dataEntrega').value;
-        const horaEntrega = document.getElementById('horaEntrega').value;
-        const empresa = document.getElementById('empresa').value;
-        const entregador = document.getElementById('entregador').value;
-        const apartamento = document.getElementById('apartamentoEntrega').value;
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-
-        entregas = entregas.map(entrega => {
-            if (entrega.id === id) {
-                return { ...entrega, destinatario, dataEntrega, horaEntrega, empresa, entregador, apartamento, dataEdicao: timestamp, editadoPor: user };
-            }
-            return entrega;
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(entregaData)
         });
 
-        localStorage.setItem('entregas', JSON.stringify(entregas));
-        atualizarListaEntregas();
-        cadastroEntregaForm.style.display = 'none';
-        entregaForm.reset();
-        showNotification('Entrega atualizada com sucesso!', 'success');
-    }
+       if (!response.ok) {
 
-    function atualizarTabelaEntregas(entregasExibidas) {
-        entregasTableBody.innerHTML = '';
-        entregasExibidas.forEach(entrega => {
-            const isDeleted = entrega.dataExclusao !== undefined;
-            const row = document.createElement('tr');
+            try {
+                const errorData = await response.json();
 
-            // Aplica estilo se o entrega foi excluído
-            if (isDeleted) {
-                row.classList.add('deleted-row'); // Adicione a classe para indicar exclusão
+                if (errorData.errors) {
+                    // Pega todas as mensagens do objeto 'errors' e junta
+                    const allMessages = Object.values(errorData.errors).flat();
+                    errorMessage = allMessages.join("<br>");
+                } else if (errorData.message) {
+                    errorMessage = errorData.message;
+                } else if (errorData.title) {
+                    errorMessage = errorData.title;
+                }
+            } catch (e) {
+                const fallbackText = await response.text().catch(() => null);
+                if (fallbackText) errorMessage = fallbackText;
             }
 
-            row.innerHTML = `
-                <td>${entrega.destinatario}</td>
-                <td>${entrega.dataEntrega}</td>
-                <td>${entrega.horaEntrega}</td>
-                <td>${entrega.empresa}</td>
-                <td>${entrega.entregador}</td>
-                <td>${entrega.apartamento}</td>
-                <td class="actions">
-                    <button class="edit" data-id="${entrega.id}"  ${isDeleted ? 'disabled' : ''}>Editar</button>
-                    <button class="delete" data-id="${entrega.id}" ${isDeleted ? 'disabled' : ''}>${isDeleted ? 'Excluído' : 'Excluir'}</button>
-                </td>
-            `;
-            entregasTableBody.appendChild(row);
-        });
+            showNotification(errorMessage, 'error');
+
+
+            throw new Error(errorMessage);
+        }
+
+
+        switch (modo) {
+            case "editar":
+                showNotification('Entrega atualizada com sucesso!', 'success');
+                break;
+
+            default:
+                showNotification('Entrega cadastrada com sucesso!', 'success');
+                break;
+        }
+     
+        form.reset();
+        form.removeAttribute("data-modo");
+        form.removeAttribute("data-id");
+        form.classList.add("hidden");
+
+        getEntregas(); 
+    } catch (error) {
+        console.error("Erro:", error);
+        showNotification('Erro ao processar a entrega', 'error');
     }
+});
 
-    gerarQrCodeBtn.addEventListener('click', function() {
-        showNotification('QR Code enviado para o WhatsApp!', 'success');
-    });
-
+   
     // Function to show notification messages
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
