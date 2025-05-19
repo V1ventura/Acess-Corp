@@ -5,30 +5,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('.menu li');
     const sections = document.querySelectorAll('.section');
     const cadastrarAdministradorBtn = document.getElementById('cadastrarAdministrador');
-    const administradorForm = document.getElementById('administradorForm');
-    const cancelarCadastroBtn = document.getElementById('cancelarCadastro');
-    const listaAdministrador = document.getElementById('listaAdministrador');
-    const administradorTableBody = document.querySelector('#administradorTable tbody');
     const pesquisaInput = document.getElementById('pesquisa');
-    const gerarQrCodeBtn = document.getElementById('gerarQrCode');
-    const administradorSection = document.getElementById("administrador");
-    const entregaSection = document.getElementById("entregas");
+
     // Entregas Elements
     const cadastrarEntregaBtn = document.getElementById('cadastrarEntrega');
     const cadastroEntregaForm = document.getElementById('cadastroEntregaForm');
     const entregaForm = document.getElementById('entregaForm');
     const cancelarCadastroEntregaBtn = document.getElementById('cancelarCadastroEntrega');
-    const entregasTableBody = document.querySelector('#entregasTable tbody');
     const pesquisaEntregaInput = document.getElementById('pesquisaEntrega');
+
+    const cadastrarMoradorBtn = document.getElementById('cadastrarMorador');
+    const cancelarCadastroMoradorBtn = document.getElementById('cancelarCadastroMorador');
+
+    const cadastrarPorteiroBtn = document.getElementById('porteiroBtn');
+    const cancelarCadastroPorteiroBtn = document.getElementById('cancelarCadastroPorteiro');
+    const cadastroPorteiroForm = document.getElementById('cadastroPorteiroForm');
+    const porteiroForm = document.getElementById('porteiroForm');
 
     let entregas = [];
     let administradores = [];
     let moradores = [];
+    let porteiros = [];
 
     const cpfInput = document.getElementById('cpf');
     const telefoneInput = document.getElementById('telefone');
-    const dataEntregaInput = document.getElementById('dataEntrega');
-    const horaEntregaInput = document.getElementById('horaEntrega');
 
     // Function to format CPF
     function formatCPF(cpf) {
@@ -745,6 +745,17 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     }
 //#endregion
 
+   cadastrarMoradorBtn.addEventListener('click', () => {
+        cadastroMoradorForm.style.display = 'block';
+    });
+
+    cancelarCadastroMoradorBtn.addEventListener('click', () => {
+        cadastroMoradorForm.style.display = 'none';
+        moradorForm.reset();
+        document.getElementById('previewFotoMorador').src = '';
+        document.getElementById('uploadIconMorador').style.display = 'block';
+    });
+
     const moradorTabelaBody = document.querySelector("#moradoresTableBody");
  async function getMoradores() {
         try {
@@ -1185,11 +1196,121 @@ getMoradores();
         });
     }
 
+      cadastrarPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'block';
+    });
+
+    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'none';
+        porteiroForm.reset();
+    });
+
     showSection('visitantes');
     atualizarListaVisitantes();
     atualizarListaEntregas();
 
-    // Adiciona funcionalidade ao botão "Sair"
+    async function getPorteiros() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para visualizar um porteiro.', 'error');
+                return;
+            }
+
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/administrator/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar administradores.");
+            }
+
+            const result = await response.json();
+
+            administradores = Array.isArray(result.data) ? result.data : [];
+
+            tabelaBody.innerHTML = "";
+        
+            administradores.forEach((admin, index) => {
+            if (!admin || typeof admin !== "object") {
+                console.warn(`Administrador inválido no índice ${index}:`, admin);
+                return;
+            }
+
+            const tr = document.createElement("tr");
+
+            const tdNome = document.createElement("td");
+            tdNome.textContent = admin.name;
+
+            const tdSobrenome = document.createElement("td");
+            tdSobrenome.textContent = admin.lastName;
+
+            const tdEmail = document.createElement("td");
+            tdEmail.textContent = admin.email;
+
+            const tdApartamento = document.createElement("td");
+            tdApartamento.textContent = admin.houseNumber;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-email="${admin.email}">Editar</button>
+                <button class="remover-btn" data-email="${admin.email}">Remover</button>
+            `;
+
+            tr.appendChild(tdNome);
+            tr.appendChild(tdSobrenome);
+            tr.appendChild(tdEmail);
+            tr.appendChild(tdApartamento);
+            tr.appendChild(tdAcoes);
+
+            tabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar administradores:", error);
+        }
+    }  
+
+    porteiroForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById('nomePorteiro').value;
+        const sobrenome = document.getElementById('sobrenomePorteiro').value;
+        const telefone = document.getElementById('telefonePorteiro').value.trim();
+        const email = document.getElementById('emailPorteiro').value.trim();
+        const senha = document.getElementById('senhaPorteiro').value;
+
+        if (!nome || !email || !senha || !confirmarSenha) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        if (senha !== confirmarSenha) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+
+        const novoPorteiro = {
+            id: crypto.randomUUID(),
+            nome,
+            telefone,
+            email,
+            senha
+        };
+
+        porteiros.push(novoPorteiro);
+        localStorage.setItem('porteiros', JSON.stringify(porteiros));
+
+        alert('Porteiro cadastrado com sucesso!');
+        porteiroForm.reset();
+        cadastroPorteiroForm.style.display = 'none';
+    });
+
     const sairBtn = document.querySelector('.menu li[data-section="sair"]');
     sairBtn.addEventListener('click', function(event) {
         event.preventDefault();
@@ -1201,6 +1322,7 @@ getMoradores();
         });
     });
 });
+
 export const config = {
     stageWidth: 800,
     stageHeight: 600,
@@ -1258,242 +1380,124 @@ function showConfirmationModal(message, onConfirm) {
         modal.style.display = 'none';
         modal.remove();
     });
-}
 
-export { showNotification, showConfirmationModal };
+    // Try to get the username from local storage
+    let username = localStorage.getItem('username') || config.defaultUsername;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const porteiroForm = document.getElementById('porteiroForm');
-    const porteiroBtn = document.getElementById('porteiroBtn');
-    const cadastroPorteiroForm = document.getElementById('cadastroPorteiroForm');
-    const cancelarCadastroPorteiroBtn = document.getElementById('cancelarCadastroPorteiro');
-    const perfisContainer = document.getElementById('perfisContainer');
+    // Get the profile picture element
+    const profilePic = document.getElementById('profile-pic');
 
-    let porteiros = JSON.parse(localStorage.getItem('porteiros')) || [];
+    // Assume you have the profile picture URL stored in local storage or from a backend
+    let profilePictureURL = localStorage.getItem('profilePictureURL');
 
-    porteiroBtn.addEventListener('click', () => {
-        cadastroPorteiroForm.style.display = 'block';
-    });
-
-    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
-        cadastroPorteiroForm.style.display = 'none';
-        porteiroForm.reset();
-    });
-
-    porteiroForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const nome = document.getElementById('nomePorteiro').value.trim();
-        const telefone = document.getElementById('telefonePorteiro').value.trim();
-        const email = document.getElementById('emailPorteiro').value.trim();
-        const senha = document.getElementById('senhaPorteiro').value;
-        const confirmarSenha = document.getElementById('confirmarSenha').value;
-
-        if (!nome || !email || !senha || !confirmarSenha) {
-            alert('Preencha todos os campos obrigatórios.');
-            return;
-        }
-
-        if (senha !== confirmarSenha) {
-            alert('As senhas não coincidem.');
-            return;
-        }
-
-        const novoPorteiro = {
-            id: crypto.randomUUID(),
-            nome,
-            telefone,
-            email,
-            senha
-        };
-
-        porteiros.push(novoPorteiro);
-        localStorage.setItem('porteiros', JSON.stringify(porteiros));
-
-        alert('Porteiro cadastrado com sucesso!');
-        porteiroForm.reset();
-        cadastroPorteiroForm.style.display = 'none';
-        renderizarPorteiros();
-    });
-
-    function renderizarPorteiros() {
-        perfisContainer.innerHTML = '';
-        porteiros.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'porteiro-card';
-            card.innerHTML = `
-                <strong>${p.nome}</strong><br>
-                Email: ${p.email}<br>
-                Telefone: ${p.telefone}<br>
-                <div class="actions">
-                    <button data-id="${p.id}" class="delete">Excluir</button>
-                </div>
-            `;
-            card.querySelector('.delete').addEventListener('click', () => {
-                excluirPorteiro(p.id);
-            });
-            perfisContainer.appendChild(card);
-        });
-    }
-
-    function excluirPorteiro(id) {
-        if (confirm('Deseja realmente excluir este porteiro?')) {
-            porteiros = porteiros.filter(p => p.id !== id);
-            localStorage.setItem('porteiros', JSON.stringify(porteiros));
-            renderizarPorteiros();
-        }
-    }
-
-    renderizarPorteiros();
-});
-
-    function updatePasswordStrengthIndicator(password) {
-        const strength = checkPasswordStrength(password);
-        const indicator = document.getElementById('passwordStrengthIndicator');
-
-        if (!indicator) {
-            return;
-        }
-
-        switch (strength) {
-            case 'muito fraca':
-                indicator.style.backgroundColor = 'red';
-                break;
-            case 'fraca':
-                indicator.style.backgroundColor = 'orange';
-                break;
-            case 'moderada':
-                indicator.style.backgroundColor = 'yellow';
-                break;
-            case 'razoável':
-                indicator.style.backgroundColor = 'lightgreen';
-                break;
-            case 'forte':
-                indicator.style.backgroundColor = 'green';
-                break;
-            default:
-                indicator.style.backgroundColor = 'transparent';
-        }
-    }
-
-    atualizarPerfis();
-
-// Try to get the username from local storage
-let username = localStorage.getItem('username') || config.defaultUsername;
-
-// Get the profile picture element
-const profilePic = document.getElementById('profile-pic');
-
-// Assume you have the profile picture URL stored in local storage or from a backend
-let profilePictureURL = localStorage.getItem('profilePictureURL');
-
-// If there's a profile picture URL, use it. Otherwise, use the default.
-if (profilePictureURL) {
-    profilePic.src = profilePictureURL;
-} else {
-    // Use a default avatar image URL
-    profilePic.src = "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png";
-}
-
-// Display the username
-const userNameSpan = document.getElementById('user-name');
-userNameSpan.textContent = `Olá, ${username}!`;
-
-// Add event listener to the "Edit Profile" link
-document.addEventListener('DOMContentLoaded', () => {
-    const editProfileLink = document.getElementById('edit-profile');
-    if (editProfileLink) {
-        editProfileLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            openEditProfileModal();
-        });
+    // If there's a profile picture URL, use it. Otherwise, use the default.
+    if (profilePictureURL) {
+        profilePic.src = profilePictureURL;
     } else {
-        console.warn('#edit-profile não encontrado no DOM.');
+        // Use a default avatar image URL
+        profilePic.src = "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png";
     }
-});
 
+    // Display the username
+    const userNameSpan = document.getElementById('user-name');
+    userNameSpan.textContent = `Olá, ${username}!`;
 
-function openEditProfileModal() {
-    const modal = document.createElement('div');
-    modal.classList.add('modal');
-    modal.id = 'editProfileModal'; // Assign an ID to the modal
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
-            <h2>Editar Perfil</h2>
-            <div style="text-align: center;">
-                <img id="edit-profile-pic" src="${localStorage.getItem('profilePictureURL') || "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png"}" alt="Foto de Perfil" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; object-fit: cover;">
-                <label for="upload-new-photo" style="display: block; margin-top: 10px; cursor: pointer; color: #007bff;">Alterar Foto</label>
-                <input type="file" id="upload-new-photo" style="display: none;" accept="image/*">
-            </div>
-            <div style="margin-top: 20px;">
-                <label for="edit-email">Email:</label>
-                <input type="email" id="edit-email" value="${localStorage.getItem('userEmail') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-nome">Nome:</label>
-                <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-sobrenome">Sobrenome:</label>
-                <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-cpf">CPF:</label>
-                <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-cargo">Cargo:</label>
-                <input type="text" id="edit-cargo" value="${localStorage.getItem('userCargo') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            <div class="buttons" style="text-align: right; margin-top: 20px;">
-                <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
-                <button class="save" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Salvar</button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-    modal.style.display = 'block';
-
-    // Event listeners for the modal buttons
-    modal.querySelector('.cancel').addEventListener('click', () => {
-        closeEditProfileModal();
-    });
-
-    modal.querySelector('.save').addEventListener('click', () => {
-        saveProfileChanges();
-    });
-
-    const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
-    uploadNewPhotoInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                modal.querySelector('#edit-profile-pic').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
+    // Add event listener to the "Edit Profile" link
+    document.addEventListener('DOMContentLoaded', () => {
+        const editProfileLink = document.getElementById('edit-profile');
+        if (editProfileLink) {
+            editProfileLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                openEditProfileModal();
+            });
+        } else {
+            console.warn('#edit-profile não encontrado no DOM.');
         }
     });
 
-    document.body.appendChild(modal);
 
-}
+    function openEditProfileModal() {
+        const modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.id = 'editProfileModal'; // Assign an ID to the modal
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <h2>Editar Perfil</h2>
+                <div style="text-align: center;">
+                    <img id="edit-profile-pic" src="${localStorage.getItem('profilePictureURL') || "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png"}" alt="Foto de Perfil" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; object-fit: cover;">
+                    <label for="upload-new-photo" style="display: block; margin-top: 10px; cursor: pointer; color: #007bff;">Alterar Foto</label>
+                    <input type="file" id="upload-new-photo" style="display: none;" accept="image/*">
+                </div>
+                <div style="margin-top: 20px;">
+                    <label for="edit-email">Email:</label>
+                    <input type="email" id="edit-email" value="${localStorage.getItem('userEmail') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
-function closeEditProfileModal() {
-    const modal = document.getElementById('editProfileModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.remove();
+                    <label for="edit-nome">Nome:</label>
+                    <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                    <label for="edit-sobrenome">Sobrenome:</label>
+                    <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                    <label for="edit-cpf">CPF:</label>
+                    <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                    <label for="edit-cargo">Cargo:</label>
+                    <input type="text" id="edit-cargo" value="${localStorage.getItem('userCargo') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div class="buttons" style="text-align: right; margin-top: 20px;">
+                    <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
+                    <button class="save" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Salvar</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        modal.style.display = 'block';
+
+        // Event listeners for the modal buttons
+        modal.querySelector('.cancel').addEventListener('click', () => {
+            closeEditProfileModal();
+        });
+
+        modal.querySelector('.save').addEventListener('click', () => {
+            saveProfileChanges();
+        });
+
+        const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
+        uploadNewPhotoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    modal.querySelector('#edit-profile-pic').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.body.appendChild(modal);
+
     }
-}
 
-function saveProfileChanges() {
-    const modal = document.getElementById('editProfileModal');
-    if (!modal) return;
+    function closeEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.remove();
+        }
+    }
 
-    const newProfilePicture = modal.querySelector('#edit-profile-pic').src;
+    function saveProfileChanges() {
+        const modal = document.getElementById('editProfileModal');
+        if (!modal) return;
 
-    // Update profile picture in local storage and on the page
-    localStorage.setItem('profilePictureURL', newProfilePicture);
-    document.getElementById('profile-pic').src = newProfilePicture;
+        const newProfilePicture = modal.querySelector('#edit-profile-pic').src;
 
-    closeEditProfileModal();
-    showNotification('Perfil atualizado com sucesso!', 'success');
+        // Update profile picture in local storage and on the page
+        localStorage.setItem('profilePictureURL', newProfilePicture);
+        document.getElementById('profile-pic').src = newProfilePicture;
+
+        closeEditProfileModal();
+        showNotification('Perfil atualizado com sucesso!', 'success');
+    }
 }
