@@ -5,20 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuItems = document.querySelectorAll('.menu li');
     const sections = document.querySelectorAll('.section');
     const cadastrarAdministradorBtn = document.getElementById('cadastrarAdministrador');
-    const administradorForm = document.getElementById('administradorForm');
-    const cancelarCadastroBtn = document.getElementById('cancelarCadastro');
-    const listaAdministrador = document.getElementById('listaAdministrador');
-    const administradorTableBody = document.querySelector('#administradorTable tbody');
     const pesquisaInput = document.getElementById('pesquisa');
-    const gerarQrCodeBtn = document.getElementById('gerarQrCode');
-    const administradorSection = document.getElementById("administrador");
-    const entregaSection = document.getElementById("entregas");
+
     // Entregas Elements
     const cadastrarEntregaBtn = document.getElementById('cadastrarEntrega');
     const cadastroEntregaForm = document.getElementById('cadastroEntregaForm');
     const entregaForm = document.getElementById('entregaForm');
     const cancelarCadastroEntregaBtn = document.getElementById('cancelarCadastroEntrega');
-    const entregasTableBody = document.querySelector('#entregasTable tbody');
     const pesquisaEntregaInput = document.getElementById('pesquisaEntrega');
 
     const cadastrarMoradorBtn = document.getElementById('cadastrarMorador');
@@ -36,8 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cpfInput = document.getElementById('cpf');
     const telefoneInput = document.getElementById('telefone');
-    const dataEntregaInput = document.getElementById('dataEntrega');
-    const horaEntregaInput = document.getElementById('horaEntrega');
 
     const editProfileLink = document.getElementById('edit-profile');
     if (editProfileLink) {
@@ -766,7 +757,6 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     }
 //#endregion
 
-
      cadastrarPorteiroBtn.addEventListener('click', () => {
         cadastroPorteiroForm.style.display = 'block';
     });
@@ -1323,7 +1313,144 @@ getMoradores();
         atualizarTabelaMoradores(resultadosPesquisa);
     });
 
-    // Adiciona funcionalidade ao botão "Sair"
+    function atualizarTabelaMoradores(moradoresExibidos) {
+        moradoresTableBody.innerHTML = '';
+        moradoresExibidos.forEach(morador => {
+            const isDeleted = morador.dataExclusao !== undefined;
+            const row = document.createElement('tr');
+
+            // Aplica estilo se o morador foi excluído
+            if (isDeleted) {
+                row.classList.add('deleted-row'); // Adicione a classe para indicar exclusão
+            }
+
+            row.innerHTML = `
+                <td>${morador.nomeMorador}</td>
+                <td>${morador.apartamentoMorador}</td>
+                <td class="actions">
+                    <button class="edit" data-id="${morador.id}"  ${isDeleted ? 'disabled' : ''}>Editar</button>
+                    <button class="delete" data-id="${morador.id}" ${isDeleted ? 'disabled' : ''}>${isDeleted ? 'Excluído' : 'Excluir'}</button>
+                </td>
+            `;
+            moradoresTableBody.appendChild(row);
+        });
+    }
+
+      cadastrarPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'block';
+    });
+
+    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'none';
+        porteiroForm.reset();
+    });
+
+    showSection('visitantes');
+    atualizarListaVisitantes();
+    atualizarListaEntregas();
+
+    async function getPorteiros() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para visualizar um porteiro.', 'error');
+                return;
+            }
+
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/administrator/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar administradores.");
+            }
+
+            const result = await response.json();
+
+            administradores = Array.isArray(result.data) ? result.data : [];
+
+            tabelaBody.innerHTML = "";
+        
+            administradores.forEach((admin, index) => {
+            if (!admin || typeof admin !== "object") {
+                console.warn(`Administrador inválido no índice ${index}:`, admin);
+                return;
+            }
+
+            const tr = document.createElement("tr");
+
+            const tdNome = document.createElement("td");
+            tdNome.textContent = admin.name;
+
+            const tdSobrenome = document.createElement("td");
+            tdSobrenome.textContent = admin.lastName;
+
+            const tdEmail = document.createElement("td");
+            tdEmail.textContent = admin.email;
+
+            const tdApartamento = document.createElement("td");
+            tdApartamento.textContent = admin.houseNumber;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-email="${admin.email}">Editar</button>
+                <button class="remover-btn" data-email="${admin.email}">Remover</button>
+            `;
+
+            tr.appendChild(tdNome);
+            tr.appendChild(tdSobrenome);
+            tr.appendChild(tdEmail);
+            tr.appendChild(tdApartamento);
+            tr.appendChild(tdAcoes);
+
+            tabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar administradores:", error);
+        }
+    }  
+
+    porteiroForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById('nomePorteiro').value;
+        const sobrenome = document.getElementById('sobrenomePorteiro').value;
+        const telefone = document.getElementById('telefonePorteiro').value.trim();
+        const email = document.getElementById('emailPorteiro').value.trim();
+        const senha = document.getElementById('senhaPorteiro').value;
+
+        if (!nome || !email || !senha || !confirmarSenha) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        if (senha !== confirmarSenha) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+
+        const novoPorteiro = {
+            id: crypto.randomUUID(),
+            nome,
+            telefone,
+            email,
+            senha
+        };
+
+        porteiros.push(novoPorteiro);
+        localStorage.setItem('porteiros', JSON.stringify(porteiros));
+
+        alert('Porteiro cadastrado com sucesso!');
+        porteiroForm.reset();
+        cadastroPorteiroForm.style.display = 'none';
+    });
+
     const sairBtn = document.querySelector('.menu li[data-section="sair"]');
     sairBtn.addEventListener('click', function(event) {
         event.preventDefault();
@@ -1335,6 +1462,7 @@ getMoradores();
         });
     });
 });
+
 export const config = {
     stageWidth: 800,
     stageHeight: 600,
@@ -1392,9 +1520,6 @@ function showConfirmationModal(message, onConfirm) {
         modal.style.display = 'none';
         modal.remove();
     });
-}
-
-
 
 async function buscarDadosAdministrador() {
     const tokenData = JSON.parse(localStorage.getItem("authData"));
@@ -1475,7 +1600,7 @@ async function openEditProfileModal() {
                 <input type="email" id="edit-email" value="${adminData.email}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
                 <label for="edit-nome">Nome:</label>
-                <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                  <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
                 <label for="edit-sobrenome">Sobrenome:</label>
                 <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
@@ -1508,22 +1633,21 @@ async function openEditProfileModal() {
         saveProfileChanges(adminData);
     });
 
-    const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
-    uploadNewPhotoInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                modal.querySelector('#edit-profile-pic').src = e.target.result;
+        const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
+        uploadNewPhotoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    modal.querySelector('#edit-profile-pic').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
-        }
-    });
+        });
 
-    document.body.appendChild(modal);
+        document.body.appendChild(modal);
 
-}
-
+    }
 
 const userNameSpan = document.getElementById("user-name");
 const profilePic = document.getElementById("profile-pic");
@@ -1545,7 +1669,6 @@ function closeEditProfileModal() {
         modal.style.display = 'none';
         modal.remove();
     }
-}
 
 async function saveProfileChanges(adminData) {
     const modal = document.getElementById('editProfileModal');
@@ -1595,4 +1718,3 @@ async function saveProfileChanges(adminData) {
     showNotification('Perfil atualizado com sucesso!', 'success');
 
     buscarDadosAdministrador();
-}
