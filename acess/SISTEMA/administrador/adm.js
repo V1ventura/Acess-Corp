@@ -30,6 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const cpfInput = document.getElementById('cpf');
     const telefoneInput = document.getElementById('telefone');
 
+    const editProfileLink = document.getElementById('edit-profile');
+    if (editProfileLink) {
+        editProfileLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openEditProfileModal();
+        });
+    } else {
+        console.warn('#edit-profile não encontrado no DOM.');
+    }
+
     // Function to format CPF
     function formatCPF(cpf) {
         cpf = cpf.replace(/\D/g, ''); // Remove non-numeric characters
@@ -44,8 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cadastrarAdministradorBtn.addEventListener("click", () => {
     document.getElementById("formCadastroAdministrador").style.display = "block"; // mostra o formulário
-});
 
+    
+});
 
     // Function to format phone number
     function formatPhoneNumber(phoneNumber) {
@@ -246,6 +257,7 @@ document.getElementById("foto").addEventListener("change", function () {
 });
     
 getAdministradores();
+getPorteiros();
 
 document.getElementById("formCadastroAdministrador").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -745,6 +757,247 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     }
 //#endregion
 
+     cadastrarPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'block';
+    });
+
+    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
+        cadastroPorteiroForm.style.display = 'none';
+        porteiroForm.reset();
+    });
+
+    const porteiroTabelaBody = document.querySelector("#porteiroTableBody");
+ async function getPorteiros() {
+        try {
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para visualizar um porteiro.', 'error');
+                return;
+            }
+
+            const accessToken = tokenData.accessToken;
+
+            const response = await fetch("https://localhost:7100/users/v1/doorman/view-all", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar porteiros.");
+            }
+
+            const result = await response.json();
+
+            porteiros = Array.isArray(result.data) ? result.data : [];
+
+            porteiroTabelaBody.innerHTML = "";
+        
+            porteiros.forEach((porteiro, index) => {
+            if (!porteiro || typeof porteiro !== "object") {
+                console.warn(`Porteiro inválido no índice ${index}:`, porteiro);
+                return;
+            }
+
+            const tr = document.createElement("tr");
+
+            const tdNome = document.createElement("td");
+            tdNome.textContent = porteiro.name;
+
+            const tdSobrenome = document.createElement("td");
+            tdSobrenome.textContent = porteiro.lastName;
+
+            const tdEmail = document.createElement("td");
+            tdEmail.textContent = porteiro.email;
+
+            const tdAcoes = document.createElement("td");
+            tdAcoes.innerHTML = `
+                <button class="editar-btn" data-email="${porteiro.email}">Editar</button>
+                <button class="remover-btn" data-email="${porteiro.email}">Remover</button>
+            `;
+
+            tr.appendChild(tdNome);
+            tr.appendChild(tdSobrenome);
+            tr.appendChild(tdEmail);
+            tr.appendChild(tdAcoes);
+
+            porteiroTabelaBody.appendChild(tr);
+        });
+        } catch (error) {
+            console.error("Erro ao carregar porteiros:", error);
+        }
+    }
+
+    porteiroTabelaBody.addEventListener("click", async function (e) {
+    if (e.target.classList.contains("editar-btn")) {
+        try {
+            const button = e.target; 
+            const email = button.getAttribute("data-email");
+
+            const porteiro = porteiros.find(a => a.email === email);
+
+            if (!porteiro) {
+                console.error("Erro ao buscar porteiro: porteiro não encontrado.");
+                showNotification('Erro ao buscar porteiro: porteiro não encontrado.', 'error');
+
+                return;
+            }
+
+        console.log("Porteiro encontrado:", porteiro);
+            // Preenche o formulário com os dados
+            document.getElementById("nomePorteiro").value = porteiro.name;
+            document.getElementById("sobrenomePorteiro").value = porteiro.lastName;
+            document.getElementById("emailPorteiro").value = porteiro.email;
+            document.getElementById("telefonePorteiro").value = formatPhoneNumber(porteiro.phone);
+            document.getElementById("cpfPorteiro").value = formatCPF(porteiro.cpf);
+            document.getElementById("cepPorteiro").value = porteiro.cep;
+            document.getElementById("senhaPorteiro").value = porteiro.password;
+
+            cadastroPorteiroForm.setAttribute("data-modo", "editar");
+            cadastroPorteiroForm.setAttribute("data-email", porteiro.email);
+            cadastroPorteiroForm.style.display = "block";
+        } catch (err) {
+            console.error("Erro ao buscar porteiro:", err.message);
+            showNotification('Erro ao buscar porteiro.', 'error');
+        }
+    }
+
+       if (e.target.classList.contains("remover-btn")) {
+        const button = e.target;
+        const email = button.getAttribute("data-email");
+
+        const tokenData = JSON.parse(localStorage.getItem("authData"));
+        if (!tokenData || !tokenData.accessToken) {
+            showNotification('Você precisa estar logado para excluir um porteiro.', 'error');
+            return;
+        }
+
+        try {
+            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
+            // if (confirmacao.onConfirm())
+            { 
+                const response = await fetch(`https://localhost:7100/users/v1/doorman/exclude/${email}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao excluir porteiros.");
+                }
+
+                showNotification("Porteiro excluído com sucesso!", 'success');
+                getPorteiros();
+            }
+
+        } catch (error) {
+            console.error("Erro ao excluir porteiro:", error);
+            showNotification('Erro ao excluir porteiro', 'error');
+        }
+    }
+});
+
+ cadastroPorteiroForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const tokenData = JSON.parse(localStorage.getItem("authData"));
+    if (!tokenData || !tokenData.accessToken) {
+        showNotification('Você precisa estar logado para cadastrar um porteiro.', 'error');
+        return;
+    }
+
+    const accessToken = tokenData.accessToken;
+
+    const nome = document.getElementById("nomePorteiro").value;
+    const sobrenome = document.getElementById("sobrenomePorteiro").value;
+    const email = document.getElementById("emailPorteiro").value;
+    const telefone = document.getElementById("telefonePorteiro").value.replace(/\D/g, '');
+    const cpf = document.getElementById("cpfPorteiro").value.replace(/\D/g, '');
+    const cep = document.getElementById("cepPorteiro").value.replace(/\D/g, '');
+    const senha = document.getElementById("senhaPorteiro").value;
+
+    const porteiroData = {
+        name: nome,
+        lastName: sobrenome,
+        email: email,
+        phone: telefone,
+        cpf: cpf,
+        cep: cep,
+        password: senha
+    };
+
+    try {
+        let url = "https://localhost:7100/users/v1/doorman/register";
+        let method = "POST";
+
+        const form = porteiroForm;
+        const modo = form.getAttribute("data-modo");
+
+            if (modo === "editar") {
+            const emailOriginal = form.getAttribute("data-email");
+            url = `https://localhost:7100/users/v1/doorman/update/${emailOriginal}`;
+            method = "PUT";
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(porteiroData)
+        });
+
+            if (!response.ok) {
+
+                try {
+                    const errorData = await response.json();
+
+                    if (errorData.errors) {
+                        const allMessages = Object.values(errorData.errors).flat();
+                        errorMessage = allMessages.join("<br>");
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.title) {
+                        errorMessage = errorData.title;
+                    }
+                } catch (e) {
+                    const fallbackText = await response.text().catch(() => null);
+                    if (fallbackText) errorMessage = fallbackText;
+                }
+
+                showNotification(errorMessage, 'error');
+
+                throw new Error(errorMessage);
+            }
+
+        switch (modo) {
+            case "editar":
+                showNotification('Porteiro atualizado com sucesso!', 'success');
+                break;
+
+            default:
+                showNotification('Porteiro cadastrado com sucesso!', 'success');
+                break;
+        }
+     
+        form.reset();
+        form.removeAttribute("data-modo");
+        form.removeAttribute("data-email");
+        document.getElementById("previewFoto").src = "";
+        form.classList.add("hidden");
+
+        getPorteiros(); 
+    } catch (error) {
+        console.error("Erro:", error);
+        showNotification('Erro ao processar o porteiro', 'error');
+    }
+});
+
    cadastrarMoradorBtn.addEventListener('click', () => {
         cadastroMoradorForm.style.display = 'block';
     });
@@ -839,23 +1092,22 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
                 return;
             }
 
-        // TODO: MUDAR OS GETELEMENTBYID
         console.log("Morador encontrado:", morador);
             // Preenche o formulário com os dados
-            document.getElementById("nome").value = morador.name;
-            document.getElementById("sobrenome").value = morador.lastName;
-            document.getElementById("email").value = morador.email;
-            document.getElementById("telefone").value = formatPhoneNumber(morador.phone);
-            document.getElementById("cpf").value = formatCPF(morador.cpf);
-            document.getElementById("cep").value = admin.cep;
-            document.getElementById("apartamento").value = morador.houseNumber;
+            document.getElementById("nomeMorador").value = morador.name;
+            document.getElementById("sobrenomeMorador").value = morador.lastName;
+            document.getElementById("emailMorador").value = morador.email;
+            document.getElementById("telefoneMorador").value = formatPhoneNumber(morador.phone);
+            document.getElementById("cpfMorador").value = formatCPF(morador.cpf);
+            document.getElementById("cepMorador").value = morador.cep;
+            document.getElementById("apartamentoMorador").value = morador.houseNumber;
 
-            document.getElementById("formCadastroAdministrador").setAttribute("data-modo", "editar");
-            document.getElementById("formCadastroAdministrador").setAttribute("data-email", morador.email);
-            document.getElementById("formCadastroAdministrador").style.display = "block";
+            document.getElementById("cadastroMoradorForm").setAttribute("data-modo", "editar");
+            document.getElementById("cadastroMoradorForm").setAttribute("data-email", morador.email);
+            document.getElementById("cadastroMoradorForm").style.display = "block";
         } catch (err) {
-            console.error("Erro ao buscar administrador:", err.message);
-            showNotification('Erro ao buscar administrador.', 'error');
+            console.error("Erro ao buscar morador:", err.message);
+            showNotification('Erro ao buscar morador.', 'error');
         }
     }
 
@@ -873,7 +1125,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
             // if (confirmacao.onConfirm())
             { 
-                const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
+                const response = await fetch(`https://localhost:7100/users/v1/residents/exclude/${email}`, {
                     method: "DELETE",
                     headers: {
                         "Authorization": `Bearer ${tokenData.accessToken}`
@@ -961,12 +1213,12 @@ getMoradores();
         let url = "https://localhost:7100/users/v1/residents/register";
         let method = "POST";
 
-        const form = document.getElementById("cadastroMoradorForm");
+        const form = document.getElementById("moradorForm");
         const modo = form.getAttribute("data-modo");
 
             if (modo === "editar") {
             const emailOriginal = form.getAttribute("data-email");
-            url = `https://localhost:7100/users/v1//residents/update/${emailOriginal}`;
+            url = `https://localhost:7100/users/v1/residents/update/${emailOriginal}`;
             method = "PUT";
         }
 
@@ -1025,118 +1277,6 @@ getMoradores();
     }
 });
 
-
-    moradoresTableBody.addEventListener('click', function (event) {
-        if (event.target.classList.contains('delete')) {
-            const id = event.target.dataset.id;
-            showConfirmationModal('Tem certeza que deseja excluir este morador?', () => {
-                excluirMorador(id);
-            });
-        } else if (event.target.classList.contains('edit')) {
-            const id = event.target.dataset.id;
-            editarMorador(id);
-        }
-    });
-
-    function excluirMorador(id) {
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-        const morador = moradores.find(morador => morador.id === id);
-        if (morador) {
-            morador.dataExclusao = timestamp;
-            morador.excluidoPor = user;
-        }
-        moradores = moradores.filter(morador => morador.id !== id);
-        localStorage.setItem('moradores', JSON.stringify(moradores));
-        atualizarListaMoradores();
-        showNotification('Morador excluído com sucesso!', 'success');
-    }
-
-    function editarMorador(id) {
-        const morador = moradores.find(morador => morador.id === id);
-        if (morador) {
-            cadastroMoradorForm.style.display = 'block';
-            document.getElementById('nomeMorador').value = morador.nomeMorador;
-            document.getElementById('emailMorador').value = morador.emailMorador;
-            document.getElementById('apartamentoMorador').value = morador.apartamentoMorador;
-            document.getElementById('rgMorador').value = morador.rgMorador;
-            document.getElementById('cpfMorador').value = morador.cpfMorador;
-            document.getElementById('telefoneMorador').value = morador.telefoneMorador;
-            document.getElementById('dataNascimentoMorador').value = morador.dataNascimentoMorador;
-            document.getElementById('previewFotoMorador').src = morador.fotoMorador || '';
-            document.getElementById('uploadIconMorador').style.display = morador.fotoMorador ? 'none' : 'block';
-
-            // Remove the old submit listener
-            moradorForm.removeEventListener('submit', handleMoradorFormSubmit);
-
-            // Add a new submit listener for editing
-            moradorForm.addEventListener('submit', function handleMoradorFormSubmit(event) {
-                event.preventDefault();
-                atualizarMorador(id);
-                // Remove the listener after it's used once
-                moradorForm.removeEventListener('submit', handleMoradorFormSubmit);
-            });
-        }
-    }
-
-    function atualizarMorador(id) {
-        const nomeMorador = document.getElementById('nomeMorador').value;
-        const emailMorador = document.getElementById('emailMorador').value;
-        const apartamentoMorador = document.getElementById('apartamentoMorador').value;
-        const rgMorador = document.getElementById('rgMorador').value;
-        const cpfMorador = document.getElementById('cpfMorador').value;
-        const telefoneMorador = document.getElementById('telefoneMorador').value;
-        const dataNascimentoMorador = document.getElementById('dataNascimentoMorador').value;
-        const fotoMoradorInput = document.getElementById('fotoMorador');
-        const fotoMoradorFile = fotoMoradorInput.files[0];
-        const timestamp = new Date().toLocaleString();
-        const user = "System"; // Replace with actual user authentication if available
-
-        let fotoMoradorURL = '';
-        if (fotoMoradorFile) {
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                fotoMoradorURL = reader.result;
-                atualizarMoradorData(id, nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, fotoMoradorURL);
-            }
-            reader.onerror = function (error) {
-                console.error('Erro ao ler a imagem:', error);
-                showNotification('Erro ao processar a imagem.', 'error');
-            };
-            reader.readAsDataURL(fotoMoradorFile);
-        } else {
-            atualizarMoradorData(id, nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, null);
-        }
-    }
-
-    function atualizarMoradorData(id, nomeMorador, emailMorador, apartamentoMorador, rgMorador, cpfMorador, telefoneMorador, dataNascimentoMorador, fotoMoradorURL) {
-        moradores = moradores.map(morador => {
-            if (morador.id === id) {
-                return {
-                    ...morador,
-                    nomeMorador,
-                    emailMorador,
-                    apartamentoMorador,
-                    rgMorador,
-                    cpfMorador,
-                    telefoneMorador,
-                    dataNascimentoMorador,
-                    fotoMorador: fotoMoradorURL !== null ? fotoMoradorURL : morador.fotoMorador,
-                    dataEdicao: timestamp,
-                    editadoPor: user
-                };
-            }
-            return morador;
-        });
-
-        localStorage.setItem('moradores', JSON.stringify(moradores));
-        atualizarListaMoradores();
-        cadastroMoradorForm.style.display = 'none';
-        moradorForm.reset();
-        document.getElementById('previewFotoMorador').src = '';
-        document.getElementById('uploadIconMorador').style.display = 'block';
-        showNotification('Morador atualizado com sucesso!', 'success');
-    }
 
     document.getElementById('fotoMorador').addEventListener('change', function() {
         const file = this.files[0];
@@ -1381,87 +1521,117 @@ function showConfirmationModal(message, onConfirm) {
         modal.remove();
     });
 
-    // Try to get the username from local storage
-    let username = localStorage.getItem('username') || config.defaultUsername;
+async function buscarDadosAdministrador() {
+    const tokenData = JSON.parse(localStorage.getItem("authData"));
 
-    // Get the profile picture element
-    const profilePic = document.getElementById('profile-pic');
+    const administratorToken = tokenData.administratorToken;
+    const adminLogado = administratorToken.email;
+    const accessToken = tokenData.accessToken;
 
-    // Assume you have the profile picture URL stored in local storage or from a backend
-    let profilePictureURL = localStorage.getItem('profilePictureURL');
+    let adminData;
 
-    // If there's a profile picture URL, use it. Otherwise, use the default.
-    if (profilePictureURL) {
-        profilePic.src = profilePictureURL;
-    } else {
-        // Use a default avatar image URL
-        profilePic.src = "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png";
+    if (!tokenData || !tokenData.administratorToken || !tokenData.accessToken) {
+        showNotification("Dados de autenticação não encontrados. Faça login novamente.", "error");
+        return;
     }
 
-    // Display the username
-    const userNameSpan = document.getElementById('user-name');
-    userNameSpan.textContent = `Olá, ${username}!`;
+    const url = `https://localhost:7100/users/v1/administrator/view/${adminLogado}`;
 
-    // Add event listener to the "Edit Profile" link
-    document.addEventListener('DOMContentLoaded', () => {
-        const editProfileLink = document.getElementById('edit-profile');
-        if (editProfileLink) {
-            editProfileLink.addEventListener('click', (event) => {
-                event.preventDefault();
-                openEditProfileModal();
-            });
-        } else {
-            console.warn('#edit-profile não encontrado no DOM.');
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+        });
+
+        if (!response.ok) {
+            let errorMessage = 'Erro ao buscar dados';
+            try {
+                const errorData = await response.json();
+                if (errorData.errors) {
+                    const allMessages = Object.values(errorData.errors).flat();
+                    errorMessage = allMessages.join("<br>");
+                } else if (errorData.message) {
+                    errorMessage = errorData.message;
+                } else if (errorData.title) {
+                    errorMessage = errorData.title;
+                }
+            } catch (e) {
+                const fallbackText = await response.text().catch(() => null);
+                if (fallbackText) errorMessage = fallbackText;
+            }
+
+            showNotification(errorMessage, 'error');
+            throw new Error(errorMessage);
         }
+
+        adminData = await response.json();
+        console.log("Dados do administrador:", adminData);
+        return adminData;
+
+    } catch (err) {
+        console.error("Erro ao buscar dados do administrador:", err);
+        return null;
+    }
+}
+
+async function openEditProfileModal() {
+    const modal = document.createElement('div');
+    modal.classList.add('modal');
+    modal.id = 'editProfileModal';
+
+    let adminData = await buscarDadosAdministrador();
+
+    const base64string = adminData.imageUpload;
+    const base64Image = `data:image/png;base64,${base64string}`;
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <h2>Editar Perfil</h2>
+            <div style="text-align: center;">
+                <img id="edit-profile-pic" src="${base64Image}"}" alt="Foto de Perfil" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; object-fit: cover;">
+                <label for="upload-new-photo" style="display: block; margin-top: 10px; cursor: pointer; color: #007bff;">Alterar Foto</label>
+                <input type="file" id="upload-new-photo" style="display: none;" accept="image/*">
+            </div>
+            <div style="margin-top: 20px;">
+                <label for="edit-email">Email:</label>
+                <input type="email" id="edit-email" value="${adminData.email}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                <label for="edit-nome">Nome:</label>
+                  <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                <label for="edit-sobrenome">Sobrenome:</label>
+                <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+                <label for="edit-cpf">CPF:</label>
+                <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div class="buttons" style="text-align: right; margin-top: 20px;">
+                <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
+                <button class="save" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Salvar</button>
+            </div>
+        </div>
+    `;
+   
+    modal.querySelector("#edit-nome").value = adminData.name || "";
+    modal.querySelector("#edit-sobrenome").value = adminData.lastName || "";
+    modal.querySelector("#edit-email").value = adminData.email || "";
+    modal.querySelector("#edit-cpf").value = adminData.cpf || ""; 
+
+    //TODO Arrumar para que pegue o valor que estão nos campos e atualizar o adminData para que seja passado para o saveProfileChanges()
+
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+
+    modal.querySelector('.cancel').addEventListener('click', () => {
+        closeEditProfileModal();
     });
 
-
-    function openEditProfileModal() {
-        const modal = document.createElement('div');
-        modal.classList.add('modal');
-        modal.id = 'editProfileModal'; // Assign an ID to the modal
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px;">
-                <h2>Editar Perfil</h2>
-                <div style="text-align: center;">
-                    <img id="edit-profile-pic" src="${localStorage.getItem('profilePictureURL') || "https://static.whatsapp.net/rsrc.php/ym/r/36B424nhiYH.png"}" alt="Foto de Perfil" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid white; object-fit: cover;">
-                    <label for="upload-new-photo" style="display: block; margin-top: 10px; cursor: pointer; color: #007bff;">Alterar Foto</label>
-                    <input type="file" id="upload-new-photo" style="display: none;" accept="image/*">
-                </div>
-                <div style="margin-top: 20px;">
-                    <label for="edit-email">Email:</label>
-                    <input type="email" id="edit-email" value="${localStorage.getItem('userEmail') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                    <label for="edit-nome">Nome:</label>
-                    <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                    <label for="edit-sobrenome">Sobrenome:</label>
-                    <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                    <label for="edit-cpf">CPF:</label>
-                    <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                    <label for="edit-cargo">Cargo:</label>
-                    <input type="text" id="edit-cargo" value="${localStorage.getItem('userCargo') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-                </div>
-                <div class="buttons" style="text-align: right; margin-top: 20px;">
-                    <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
-                    <button class="save" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Salvar</button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        modal.style.display = 'block';
-
-        // Event listeners for the modal buttons
-        modal.querySelector('.cancel').addEventListener('click', () => {
-            closeEditProfileModal();
-        });
-
-        modal.querySelector('.save').addEventListener('click', () => {
-            saveProfileChanges();
-        });
+    modal.querySelector('.save').addEventListener('click', () => {
+        saveProfileChanges(adminData);
+    });
 
         const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
         uploadNewPhotoInput.addEventListener('change', function() {
@@ -1479,25 +1649,72 @@ function showConfirmationModal(message, onConfirm) {
 
     }
 
-    function closeEditProfileModal() {
-        const modal = document.getElementById('editProfileModal');
-        if (modal) {
-            modal.style.display = 'none';
-            modal.remove();
-        }
-    }
+const userNameSpan = document.getElementById("user-name");
+const profilePic = document.getElementById("profile-pic");
 
-    function saveProfileChanges() {
-        const modal = document.getElementById('editProfileModal');
-        if (!modal) return;
+// Busca os dados do administrador
+const adminData = await buscarDadosAdministrador();
 
-        const newProfilePicture = modal.querySelector('#edit-profile-pic').src;
-
-        // Update profile picture in local storage and on the page
-        localStorage.setItem('profilePictureURL', newProfilePicture);
-        document.getElementById('profile-pic').src = newProfilePicture;
-
-        closeEditProfileModal();
-        showNotification('Perfil atualizado com sucesso!', 'success');
-    }
+if (adminData && userNameSpan) {
+    userNameSpan.textContent = `Olá, ${adminData.name}!`;
+    profilePic.src = `data:image/png;base64,${adminData.imageUpload}`;
+} else {
+    console.warn("Não foi possível exibir o nome do usuário.");
 }
+
+
+function closeEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.remove();
+    }
+
+async function saveProfileChanges(adminData) {
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) return;
+
+        const tokenData = JSON.parse(localStorage.getItem("authData"));
+        const accessToken = tokenData.accessToken;
+
+        let url = `https://localhost:7100/users/v1/administrator/update/${adminData.email}`;
+        let method = "PUT";
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(adminData)
+        });
+
+            if (!response.ok) {
+
+                try {
+                    const errorData = await response.json();
+
+                    if (errorData.errors) {
+                        // Pega todas as mensagens do objeto 'errors' e junta
+                        const allMessages = Object.values(errorData.errors).flat();
+                        errorMessage = allMessages.join("<br>");
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.title) {
+                        errorMessage = errorData.title;
+                    }
+                } catch (e) {
+                    const fallbackText = await response.text().catch(() => null);
+                    if (fallbackText) errorMessage = fallbackText;
+                }
+
+                showNotification(errorMessage, 'error');
+
+
+                throw new Error(errorMessage);
+            }
+
+    closeEditProfileModal();
+    showNotification('Perfil atualizado com sucesso!', 'success');
+
+    buscarDadosAdministrador();
