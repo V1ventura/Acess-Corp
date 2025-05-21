@@ -221,7 +221,7 @@ document.getElementById("foto").addEventListener("change", function () {
 
             document.getElementById("formCadastroAdministrador").setAttribute("data-modo", "editar");
             document.getElementById("formCadastroAdministrador").setAttribute("data-email", admin.email);
-            document.getElementById("formCadastroAdministrador").style.display = "block";
+            document.getElementById("administradorForm").style.display = "block";
         } catch (err) {
             console.error("Erro ao buscar administrador:", err.message);
             showNotification('Erro ao buscar administrador.', 'error');
@@ -390,7 +390,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         form.removeAttribute("data-modo");
         form.removeAttribute("data-email");
         document.getElementById("previewFoto").src = "";
-        form.classList.add("hidden");
+        document.getElementById("administradorForm").style.display = "none";
 
         getAdministradores(); 
     } catch (error) {
@@ -562,8 +562,9 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             document.getElementById("cepEntrega").value = entrega.cep;
             document.getElementById("apartamentoEntrega").value = entrega.numberHouse;
 
-            document.getElementById("cadastroEntregaForm").setAttribute("data-modo", "editar");
-            document.getElementById("cadastroEntregaForm").setAttribute("data-id", entrega.id);
+            const form = document.getElementById("entregaForm");
+            form.setAttribute("data-modo", "editar");
+            form.setAttribute("data-id", entrega.id);
             document.getElementById("cadastroEntregaForm").style.display = "block";
         } catch (err) {
             console.error("Erro ao buscar entrega:", err.message);
@@ -699,8 +700,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         form.reset();
         form.removeAttribute("data-modo");
         form.removeAttribute("data-id");
-        form.classList.add("hidden");
-
+        document.getElementById("cadastroEntregaForm").style.display = "none";
         getEntregas(); 
     } catch (error) {
         console.error("Erro:", error);
@@ -865,8 +865,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             document.getElementById("cepPorteiro").value = porteiro.cep;
             document.getElementById("senhaPorteiro").value = porteiro.password;
 
-            cadastroPorteiroForm.setAttribute("data-modo", "editar");
-            cadastroPorteiroForm.setAttribute("data-email", porteiro.email);
+            porteiroForm.setAttribute("data-modo", "editar");
+            porteiroForm.setAttribute("data-email", porteiro.email);
             cadastroPorteiroForm.style.display = "block";
         } catch (err) {
             console.error("Erro ao buscar porteiro:", err.message);
@@ -998,8 +998,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         form.reset();
         form.removeAttribute("data-modo");
         form.removeAttribute("data-email");
-        document.getElementById("previewFoto").src = "";
-        form.classList.add("hidden");
+        document.getElementById("cadastroPorteiroForm").classList.add("hidden");
 
         getPorteiros(); 
     } catch (error) {
@@ -1008,6 +1007,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
     }
 });
 
+//#region Morador actions
    cadastrarMoradorBtn.addEventListener('click', () => {
         cadastroMoradorForm.style.display = 'block';
     });
@@ -1112,8 +1112,9 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             document.getElementById("cepMorador").value = morador.cep;
             document.getElementById("apartamentoMorador").value = morador.houseNumber;
 
-            document.getElementById("cadastroMoradorForm").setAttribute("data-modo", "editar");
-            document.getElementById("cadastroMoradorForm").setAttribute("data-email", morador.email);
+            const form = document.getElementById("moradorForm");
+            form.setAttribute("data-modo", "editar");
+            form.setAttribute("data-email", morador.email);
             document.getElementById("cadastroMoradorForm").style.display = "block";
         } catch (err) {
             console.error("Erro ao buscar morador:", err.message);
@@ -1277,9 +1278,8 @@ getMoradores();
         form.reset();
         form.removeAttribute("data-modo");
         form.removeAttribute("data-email");
-        document.getElementById("previewFoto").src = "";
-        form.classList.add("hidden");
-
+        document.getElementById("previewFotoMorador").src = "";
+        document.getElementById("cadastroMoradorForm").style.display = "none";
         getMoradores(); 
     } catch (error) {
         console.error("Erro:", error);
@@ -1306,6 +1306,8 @@ getMoradores();
             document.getElementById('uploadIconMorador').style.display = 'block';
         }
     });
+    //#endregion
+
 
     pesquisaMoradorInput.addEventListener('input', function () {
         const termoPesquisa = this.value.toLowerCase();
@@ -1335,6 +1337,7 @@ getMoradores();
         });
     });
 });
+
 export const config = {
     stageWidth: 800,
     stageHeight: 600,
@@ -1395,7 +1398,7 @@ function showConfirmationModal(message, onConfirm) {
 }
 
 
-
+//#region editarPerfil
 async function buscarDadosAdministrador() {
     const tokenData = JSON.parse(localStorage.getItem("authData"));
 
@@ -1452,6 +1455,16 @@ async function buscarDadosAdministrador() {
     }
 }
 
+async function toBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]); // só base64
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+
 async function openEditProfileModal() {
     const modal = document.createElement('div');
     modal.classList.add('modal');
@@ -1472,16 +1485,16 @@ async function openEditProfileModal() {
             </div>
             <div style="margin-top: 20px;">
                 <label for="edit-email">Email:</label>
-                <input type="email" id="edit-email" value="${adminData.email}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="email" id="edit-email" value="${adminData.email}"  style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
                 <label for="edit-nome">Nome:</label>
-                <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
                 <label for="edit-sobrenome">Sobrenome:</label>
-                <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
 
                 <label for="edit-cpf">CPF:</label>
-                <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" readonly style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
             </div>
             <div class="buttons" style="text-align: right; margin-top: 20px;">
                 <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
@@ -1489,55 +1502,66 @@ async function openEditProfileModal() {
             </div>
         </div>
     `;
-   
+
     modal.querySelector("#edit-nome").value = adminData.name || "";
     modal.querySelector("#edit-sobrenome").value = adminData.lastName || "";
     modal.querySelector("#edit-email").value = adminData.email || "";
     modal.querySelector("#edit-cpf").value = adminData.cpf || ""; 
 
-    //TODO Arrumar para que pegue o valor que estão nos campos e atualizar o adminData para que seja passado para o saveProfileChanges()
+    const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
+    const profilePicImg = modal.querySelector('#edit-profile-pic');
+
+    uploadNewPhotoInput.addEventListener('change', async function () {
+        const file = this.files[0];
+        if (file) {
+            const base64 = await toBase64(file);
+            profilePicImg.src = `data:image/png;base64,${base64}`;
+        }
+    });
+
 
     document.body.appendChild(modal);
     modal.style.display = 'block';
-
     modal.querySelector('.cancel').addEventListener('click', () => {
         closeEditProfileModal();
     });
 
-    modal.querySelector('.save').addEventListener('click', () => {
-        saveProfileChanges(adminData);
-    });
+    modal.querySelector('.save').addEventListener('click', async () => {
+            const uploadInput = modal.querySelector('#upload-new-photo');
+    let imageBase64 = adminData.imageUpload;
+    let imageName = adminData.image || "";
 
-    const uploadNewPhotoInput = modal.querySelector('#upload-new-photo');
-    uploadNewPhotoInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                modal.querySelector('#edit-profile-pic').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    });
+    if (uploadInput.files.length > 0) {
+        imageBase64 = await toBase64(uploadInput.files[0]);
+        imageName = uploadInput.files[0].name;
+    }
+
+    const adminInput = {
+        id: adminData.id,
+        identityId: adminData.identityId, 
+        name: modal.querySelector("#edit-nome").value,
+        lastName: modal.querySelector("#edit-sobrenome").value,
+        email: modal.querySelector("#edit-email").value,
+        phone: adminData.phone,
+        cpf: modal.querySelector("#edit-cpf").value,
+        cep: adminData.cep,
+        houseNumber: parseInt(adminData.houseNumber),
+        image: imageName,
+        imageUpload: imageBase64,
+        password: adminData.password,
+    };
+
+    saveProfileChanges(adminInput);
+});
 
     document.body.appendChild(modal);
 
 }
-
 
 const userNameSpan = document.getElementById("user-name");
 const profilePic = document.getElementById("profile-pic");
 
 // Busca os dados do administrador
-const adminData = await buscarDadosAdministrador();
-
-if (adminData && userNameSpan) {
-    userNameSpan.textContent = `Olá, ${adminData.name}!`;
-    profilePic.src = `data:image/png;base64,${adminData.imageUpload}`;
-} else {
-    console.warn("Não foi possível exibir o nome do usuário.");
-}
-
 
 function closeEditProfileModal() {
     const modal = document.getElementById('editProfileModal');
@@ -1546,15 +1570,27 @@ function closeEditProfileModal() {
         modal.remove();
     }
 }
+reloadAdm();
 
-async function saveProfileChanges(adminData) {
+async function reloadAdm(){
+    const adminData = await buscarDadosAdministrador();
+
+    if (adminData && userNameSpan) {
+        userNameSpan.textContent = `Olá, ${adminData.name}!`;
+        profilePic.src = `data:image/png;base64,${adminData.imageUpload}`;
+    } else {
+        console.warn("Não foi possível exibir o nome do usuário.");
+    }
+}
+
+async function saveProfileChanges(adminInput) {
     const modal = document.getElementById('editProfileModal');
     if (!modal) return;
 
         const tokenData = JSON.parse(localStorage.getItem("authData"));
         const accessToken = tokenData.accessToken;
 
-        let url = `https://localhost:7100/users/v1/administrator/update/${adminData.email}`;
+        let url = `https://localhost:7100/users/v1/administrator/update/${adminInput.email}`;
         let method = "PUT";
 
         const response = await fetch(url, {
@@ -1563,9 +1599,10 @@ async function saveProfileChanges(adminData) {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${accessToken}`
             },
-            body: JSON.stringify(adminData)
+            body: JSON.stringify(adminInput)
         });
 
+        console.log(adminInput);
             if (!response.ok) {
 
                 try {
@@ -1594,5 +1631,6 @@ async function saveProfileChanges(adminData) {
     closeEditProfileModal();
     showNotification('Perfil atualizado com sucesso!', 'success');
 
-    buscarDadosAdministrador();
+reloadAdm();
 }
+//#endregion
