@@ -463,7 +463,7 @@ body {
 }
 
 #entregaForm input[type="text"],
-#entregaForm input[type="date"],
+#entregaForm input[type="datetime-local"],
 #entregaForm input[type="time"] {
   width: 100%;
   padding: 10px;
@@ -477,7 +477,7 @@ body {
 }
 
 #entregaForm input[type="text"]:focus,
-#entregaForm input[type="date"]:focus,
+#entregaForm input[type="datetime-local"]:focus,
 #entregaForm input[type="time"]:focus {
   border-color: #80bdff;
   outline: none;
@@ -597,21 +597,21 @@ button:hover {
   background-color: #0056b3; 
 }
 
-.date-range-container {
+.datetime-local-range-container {
     display: flex;
     gap: 10px;
     align-items: center;
     margin-bottom: 15px;
 }
 
-.date-range-container label {
+.datetime-local-range-container label {
     display: flex;
     flex-direction: column;
     font-weight: 500;
     color: #495057;
 }
 
-.date-input {
+.datetime-local-input {
     padding: 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -1055,7 +1055,7 @@ button:hover {
 #formCadastroAdministrador input[type="text"],
 #formCadastroAdministrador input[type="email"],
 #formCadastroAdministrador input[type="tel"],
-#formCadastroAdministrador input[type="date"],
+#formCadastroAdministrador input[type="datetime-local"],
 #formCadastroAdministrador input[type="file"] {
   width: 100%;
   padding: 10px;
@@ -1072,7 +1072,7 @@ button:hover {
 #formCadastroAdministrador input[type="text"]:focus,
 #formCadastroAdministrador input[type="email"]:focus,
 #formCadastroAdministrador input[type="tel"]:focus,
-#formCadastroAdministrador input[type="date"]:focus,
+#formCadastroAdministrador input[type="datetime-local"]:focus,
 #formCadastroAdministrador input[type="file"]:focus {
   border-color: #80bdff;
   outline: none;
@@ -1157,7 +1157,7 @@ button:hover {
 #moradorForm input[type="text"],
 #moradorForm input[type="email"],
 #moradorForm input[type="tel"],
-#moradorForm input[type="date"],
+#moradorForm input[type="datetime-local"],
 #moradorForm input[type="file"] {
   width: 100%;
   padding: 10px;
@@ -1174,7 +1174,7 @@ button:hover {
 #moradorForm input[type="text"]:focus,
 #moradorForm input[type="email"]:focus,
 #moradorForm input[type="tel"]:focus,
-#moradorForm input[type="date"]:focus,
+#moradorForm input[type="datetime-local"]:focus,
 #moradorForm input[type="file"]:focus {
   border-color: #80bdff;
   outline: none;
