@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cadastrarPorteiroBtn = document.getElementById('porteiroBtn');
     const cancelarCadastroPorteiroBtn = document.getElementById('cancelarCadastroPorteiro');
     const cadastroPorteiroForm = document.getElementById('cadastroPorteiroForm');
+    const porteiroTabelaBody = document.querySelector("#porteiroTableBody");
     const porteiroForm = document.getElementById('porteiroForm');
 
     let entregas = [];
@@ -229,9 +230,8 @@ document.getElementById("foto").addEventListener("change", function () {
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir este administrador?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
                     method: "DELETE",
@@ -253,7 +253,8 @@ document.getElementById("foto").addEventListener("change", function () {
             console.error("Erro ao excluir administrador:", error);
             showNotification('Erro ao excluir administrador', 'error');
         }
-    }
+    });
+}
 });
     
 getAdministradores();
@@ -573,9 +574,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir esta entrega?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
                 const response = await fetch(`https://localhost:7100/users/v1/delivery/exclude/${id}`, {
                     method: "DELETE",
                     headers: {
@@ -595,7 +595,9 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir entrega:", error);
             showNotification('Erro ao excluir entrega', 'error');
         }
-    }});
+    });
+}
+});
 
     getEntregas();
 
@@ -766,7 +768,6 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         porteiroForm.reset();
     });
 
-    const porteiroTabelaBody = document.querySelector("#porteiroTableBody");
  async function getPorteiros() {
         try {
             const tokenData = JSON.parse(localStorage.getItem("authData"));
@@ -874,9 +875,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir esta entrega?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/doorman/exclude/${email}`, {
                     method: "DELETE",
@@ -898,7 +898,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir porteiro:", error);
             showNotification('Erro ao excluir porteiro', 'error');
         }
-    }
+    });
+}
 });
 
  cadastroPorteiroForm.addEventListener("submit", async function (e) {
@@ -988,7 +989,7 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
         form.reset();
         form.removeAttribute("data-modo");
         form.removeAttribute("data-email");
-        document.getElementById("cadastroPorteiroForm").classList.add("hidden");
+        cadastroPorteiroForm.style.display = 'none';
 
         getPorteiros(); 
     } catch (error) {
@@ -1122,9 +1123,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir este morador?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/residents/exclude/${email}`, {
                     method: "DELETE",
@@ -1146,7 +1146,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir morador:", error);
             showNotification('Erro ao excluir morador', 'error');
         }
-    }
+    });
+}   
 });
     
 getMoradores();
@@ -1299,168 +1300,13 @@ getMoradores();
     //#endregion
 
 
-    pesquisaMoradorInput.addEventListener('input', function () {
-        const termoPesquisa = this.value.toLowerCase();
-        const filtroOpcao = document.getElementById('filtroMoradorOpcao').value;
-
-        let resultadosPesquisa = moradores;
-
-        if (filtroOpcao && termoPesquisa) {
-            resultadosPesquisa = resultadosPesquisa.filter(morador => {
-                const valorMorador = morador[filtroOpcao]?.toLowerCase() || '';
-                return valorMorador.includes(termoPesquisa);
-            });
-        }
-
-        atualizarTabelaMoradores(resultadosPesquisa);
-    });
-
-    function atualizarTabelaMoradores(moradoresExibidos) {
-        moradoresTableBody.innerHTML = '';
-        moradoresExibidos.forEach(morador => {
-            const isDeleted = morador.dataExclusao !== undefined;
-            const row = document.createElement('tr');
-
-            // Aplica estilo se o morador foi excluído
-            if (isDeleted) {
-                row.classList.add('deleted-row'); // Adicione a classe para indicar exclusão
-            }
-
-            row.innerHTML = `
-                <td>${morador.nomeMorador}</td>
-                <td>${morador.apartamentoMorador}</td>
-                <td class="actions">
-                    <button class="edit" data-id="${morador.id}"  ${isDeleted ? 'disabled' : ''}>Editar</button>
-                    <button class="delete" data-id="${morador.id}" ${isDeleted ? 'disabled' : ''}>${isDeleted ? 'Excluído' : 'Excluir'}</button>
-                </td>
-            `;
-            moradoresTableBody.appendChild(row);
-        });
-    }
-
-      cadastrarPorteiroBtn.addEventListener('click', () => {
-        cadastroPorteiroForm.style.display = 'block';
-    });
-
-    cancelarCadastroPorteiroBtn.addEventListener('click', () => {
-        cadastroPorteiroForm.style.display = 'none';
-        porteiroForm.reset();
-    });
-
-    showSection('visitantes');
-    atualizarListaVisitantes();
-    atualizarListaEntregas();
-
-    async function getPorteiros() {
-        try {
-            const tokenData = JSON.parse(localStorage.getItem("authData"));
-            if (!tokenData || !tokenData.accessToken) {
-                showNotification('Você precisa estar logado para visualizar um porteiro.', 'error');
-                return;
-            }
-
-            const accessToken = tokenData.accessToken;
-
-            const response = await fetch("https://localhost:7100/users/v1/administrator/view-all", {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error("Erro ao buscar administradores.");
-            }
-
-            const result = await response.json();
-
-            administradores = Array.isArray(result.data) ? result.data : [];
-
-            tabelaBody.innerHTML = "";
-        
-            administradores.forEach((admin, index) => {
-            if (!admin || typeof admin !== "object") {
-                console.warn(`Administrador inválido no índice ${index}:`, admin);
-                return;
-            }
-
-            const tr = document.createElement("tr");
-
-            const tdNome = document.createElement("td");
-            tdNome.textContent = admin.name;
-
-            const tdSobrenome = document.createElement("td");
-            tdSobrenome.textContent = admin.lastName;
-
-            const tdEmail = document.createElement("td");
-            tdEmail.textContent = admin.email;
-
-            const tdApartamento = document.createElement("td");
-            tdApartamento.textContent = admin.houseNumber;
-
-            const tdAcoes = document.createElement("td");
-            tdAcoes.innerHTML = `
-                <button class="editar-btn" data-email="${admin.email}">Editar</button>
-                <button class="remover-btn" data-email="${admin.email}">Remover</button>
-            `;
-
-            tr.appendChild(tdNome);
-            tr.appendChild(tdSobrenome);
-            tr.appendChild(tdEmail);
-            tr.appendChild(tdApartamento);
-            tr.appendChild(tdAcoes);
-
-            tabelaBody.appendChild(tr);
-        });
-        } catch (error) {
-            console.error("Erro ao carregar administradores:", error);
-        }
-    }  
-
-    porteiroForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const nome = document.getElementById('nomePorteiro').value;
-        const sobrenome = document.getElementById('sobrenomePorteiro').value;
-        const telefone = document.getElementById('telefonePorteiro').value.trim();
-        const email = document.getElementById('emailPorteiro').value.trim();
-        const senha = document.getElementById('senhaPorteiro').value;
-
-        if (!nome || !email || !senha || !confirmarSenha) {
-            alert('Preencha todos os campos obrigatórios.');
-            return;
-        }
-
-        if (senha !== confirmarSenha) {
-            alert('As senhas não coincidem.');
-            return;
-        }
-
-        const novoPorteiro = {
-            id: crypto.randomUUID(),
-            nome,
-            telefone,
-            email,
-            senha
-        };
-
-        porteiros.push(novoPorteiro);
-        localStorage.setItem('porteiros', JSON.stringify(porteiros));
-
-        alert('Porteiro cadastrado com sucesso!');
-        porteiroForm.reset();
-        cadastroPorteiroForm.style.display = 'none';
-    });
-
     const sairBtn = document.querySelector('.menu li[data-section="sair"]');
     sairBtn.addEventListener('click', function(event) {
         event.preventDefault();
         showConfirmationModal('Tem certeza que deseja sair?', () => {
-            // Aqui você pode adicionar a lógica para sair do sistema
-            // Por exemplo, redirecionar para a página de login:
-            // window.location.href = 'pagina_de_login.html';
+
             showNotification('Você saiu do sistema.', 'info'); // Exibe uma notificação
+            window.location.href = '../login/login.html';
         });
     });
 });

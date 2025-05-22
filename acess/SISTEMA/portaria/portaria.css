@@ -12,6 +12,42 @@ body {
   min-height: 100vh;
 }
 
+.modal-image {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-image-content {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  width: 220px;
+  text-align: right;
+  position: relative;
+}
+
+.modal-image-content img {
+  display: block;
+  margin: 0 auto;
+  width: 180px;
+  height: 180px;
+}
+
+.close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+}
+
 .menu {
   width: 250px;
   background-color: #152e56;
@@ -426,7 +462,7 @@ body {
 }
 
 #entregaForm input[type="text"],
-#entregaForm input[type="date"],
+#entregaForm input[type="datetime-local"],
 #entregaForm input[type="time"] {
   width: 100%;
   padding: 10px;
@@ -440,7 +476,7 @@ body {
 }
 
 #entregaForm input[type="text"]:focus,
-#entregaForm input[type="date"]:focus,
+#entregaForm input[type="datetime-local"]:focus,
 #entregaForm input[type="time"]:focus {
   border-color: #80bdff;
   outline: none;
@@ -583,21 +619,21 @@ button:hover {
   background-color: #0056b3; 
 }
 
-.date-range-container {
+.datetime-local-range-container {
     display: flex;
     gap: 10px;
     align-items: center;
     margin-bottom: 15px;
 }
 
-.date-range-container label {
+.datetime-local-range-container label {
     display: flex;
     flex-direction: column;
     font-weight: 500;
     color: #495057;
 }
 
-.date-input {
+.datetime-local-input {
     padding: 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
