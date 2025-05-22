@@ -17,15 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pesquisaInput = document.getElementById('pesquisa');
     const gerarQrCodeBtn = document.getElementById('gerarQrCode');
 
-    const editProfileLink = document.getElementById('edit-profile');
-    if (editProfileLink) {
-        editProfileLink.addEventListener('click', (event) => {
-            event.preventDefault();
-            openEditProfileModal();
-        });
-    } else {
-        console.warn('#edit-profile não encontrado no DOM.');
-    }
 
     // Entregas Elements
     const cadastrarEntregaBtn = document.getElementById('cadastrarEntrega');
@@ -44,6 +35,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataEntregaInput = document.getElementById('dataEntrega');
     const horaEntregaInput = document.getElementById('horaEntrega');
 
+   const qrCodeModal = document.getElementById("qrCodeModal");
+    const qrCodeImage = document.getElementById("qrCodeImage");
+    const closeModal = document.querySelector(".modal-image .close");
+
+    function abrirModalQRCode(base64Image) {
+        qrCodeImage.src = `data:image/png;base64,${base64Image}`;
+        qrCodeModal.style.display = "flex"; 
+    }
+
+    closeModal.onclick = () => {
+        qrCodeModal.style.display = "none";
+    };
+
+    window.onclick = (event) => {
+        if (event.target === qrCodeModal) {
+            qrCodeModal.style.display = "none";
+        }
+    };
+
     getMoradores();
     // Function to format CPF
     function formatCPF(cpf) {
@@ -58,9 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Function to format phone number
-    function formatPhoneNumber(phoneNumber) {
+        function formatPhoneNumber(phoneNumber) {
         phoneNumber = phoneNumber.replace(/\D/g, ''); // Remove non-numeric characters
-        phoneNumber = phoneNumber.replace(/^(\d{2})(\d)/g, '($1) $2'); // Add area code parentheses
         phoneNumber = phoneNumber.replace(/(\d{4})(\d)/, '$1-$2'); // Add hyphen after the first 4 digits
         return phoneNumber;
     }
@@ -164,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tdAcoes.innerHTML = `
                     <button class="editar-btn" data-email="${visitante.email}">Editar</button>
                     <button class="remover-btn" data-email="${visitante.email}">Remover</button>
+                    <button class="gerar-qrcode-btn" data-email="${visitante.email}">Gerar QR Code</button>
                 `;
     
                 tr.appendChild(tdName);
@@ -183,16 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const button = e.target; 
                 const email = button.getAttribute("data-email");
-    
+
                 const visitante = visitantes.find(a => a.email === email);
-    
+
                 if (!visitante) {
                     console.error("Erro ao buscar visitante: visitante não encontrado.");
                     showNotification('Erro ao buscar visitante: visitante não encontrado.', 'error');
-    
                     return;
                 }
-    
+
                 document.getElementById("nome").value = visitante.name;
                 document.getElementById('sobrenome').value = visitante.lastName;
                 document.getElementById("email").value = visitante.email;
@@ -200,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById("cep").value = visitante.cep;
                 document.getElementById("cepVisitante").value = visitante.cepGuest;
                 document.getElementById("cpf").value = visitante.cpf;
-    
+
                 visitanteForm.setAttribute("data-modo", "editar");
                 visitanteForm.setAttribute("data-email", visitante.email);
                 cadastroVisitanteForm.style.display = "block";
@@ -209,40 +218,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNotification('Erro ao buscar visitante.', 'error');
             }
         }
-    
-           if (e.target.classList.contains("remover-btn")) {
+
+        if (e.target.classList.contains("remover-btn")) {
             const button = e.target;
             const email = button.getAttribute("data-email");
-    
+
             const tokenData = JSON.parse(localStorage.getItem("authData"));
             if (!tokenData || !tokenData.accessToken) {
                 showNotification('Você precisa estar logado para excluir um visitante.', 'error');
                 return;
             }
-    
+
             try {
-                // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-                // if (confirmacao.onConfirm())
-                    const response = await fetch(`https://localhost:7100/users/v1/guests/exclude/${email}`, {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": `Bearer ${tokenData.accessToken}`
-                        }
-                    });
-    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || "Erro ao excluir visitante.");
+                const response = await fetch(`https://localhost:7100/users/v1/guests/exclude/${email}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
                     }
-    
-                    showNotification("Visitante excluído com sucesso!", 'success');
-                    getVisitantes(); 
-    
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao excluir visitante.");
+                }
+
+                showNotification("Visitante excluído com sucesso!", 'success');
+                getVisitantes(); 
+
             } catch (error) {
                 console.error("Erro ao excluir visitante:", error);
                 showNotification('Erro ao excluir visitante', 'error');
             }
-        }});
+        }
+
+        if (e.target.classList.contains("gerar-qrcode-btn")) {
+            const button = e.target;
+            const email = button.getAttribute("data-email");
+
+            const tokenData = JSON.parse(localStorage.getItem("authData"));
+            if (!tokenData || !tokenData.accessToken) {
+                showNotification('Você precisa estar logado para gerar o QR Code do visitante.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://localhost:7100/users/v1/guests/${email}/new-qrcode`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${tokenData.accessToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao gerar o QR code.");
+                }
+
+                const result = await response.json();
+                abrirModalQRCode(result.data); 
+
+            } catch (error) {
+                console.error("Erro ao gerar o QR code:", error);
+                showNotification('Erro ao gerar o QR code.', 'error');
+            }
+        }
+    });
+
     
         getVisitantes();
     
@@ -258,13 +299,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const accessToken = tokenData.accessToken;
     
-        const nome = document.getElementById("nome").value = visitante.name;
-        const sobrenome = document.getElementById('sobrenome').value = visitante.lastName;
-        const email = document.getElementById("email").value = visitante.email;
-        const telefone = document.getElementById("telefone").value = visitante.phone;
-        const cep = document.getElementById("cep").value = visitante.cep;
-        const cepVisitante = document.getElementById("cepVisitante").value = visitante.cepGuest;
-        const cpf = document.getElementById("cpf").value = visitante.cpf;
+        const nome = document.getElementById("nome").value;
+        const sobrenome = document.getElementById('sobrenome').value;
+        const email = document.getElementById("email").value;
+        const telefone = document.getElementById("telefone").value.replace(/\D/g, '');
+        const cep = document.getElementById("cep").value.replace(/\D/g, '');
+        const cepVisitante = document.getElementById("cepVisitante").value.replace(/\D/g, '');
+        const cpf = document.getElementById("cpf").value.replace(/\D/g, '');
     
         let visitanteData = {
             id: uuidv4(),
@@ -420,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
             entregaForm.reset();
         });
     
-    
+        getEntregas();
     
         const entregaTabelaBody = document.querySelector("#entregasTableBody");
          async function getEntregas() {
@@ -752,6 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         showConfirmationModal('Tem certeza que deseja sair?', () => {
             showNotification('Você saiu do sistema.', 'info'); // Exibe uma notificação
+            window.location.href = '../login/login.html';
         });
     });
 
@@ -817,18 +859,15 @@ function showConfirmationModal(message, onConfirm) {
 
 //#region editarPerfil
 async function buscarDadosPorteiro() {
-    const tokenData = JSON.parse(localStorage.getItem("authData"));
+const tokenData = JSON.parse(localStorage.getItem("authData"));
 
-    const porteiroToken = tokenData.administratorToken;
-    const porteiroLogado = porteiroToken.email;
-    const accessToken = tokenData.accessToken;
-
-    let adminData;
-
-    if (!tokenData || !tokenData.administratorToken || !tokenData.accessToken) {
+    if (!tokenData || !tokenData.doormanToken || !tokenData.accessToken) {
         showNotification("Dados de autenticação não encontrados. Faça login novamente.", "error");
         return;
     }
+
+    const porteiroLogado = tokenData.doormanToken.id;
+    const accessToken = tokenData.accessToken;
 
     const url = `https://localhost:7100/users/v1/doorman/view/${porteiroLogado}`;
 
@@ -862,7 +901,7 @@ async function buscarDadosPorteiro() {
             throw new Error(errorMessage);
         }
 
-        porteiroData = await response.json();
+        const porteiroData = await response.json();
         console.log("Dados do porteiro:", porteiroData);
         return porteiroData;
 
@@ -872,79 +911,9 @@ async function buscarDadosPorteiro() {
     }
 }
 
-async function openEditProfileModal() {
-    const modal = document.createElement('div');
-    modal.classList.add('modal');
-    modal.id = 'edit-profile';
-
-    let porteiroData = await buscarDadosPorteiro();
-
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
-            <h2>Editar Perfil</h2>
-            <div style="margin-top: 20px;">
-                <label for="edit-email">Email:</label>
-                <input type="email" id="edit-email" value="${porteiroData.email}"  style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-nome">Nome:</label>
-                <input type="text" id="edit-nome" value="${localStorage.getItem('userNome') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-sobrenome">Sobrenome:</label>
-                <input type="text" id="edit-sobrenome" value="${localStorage.getItem('userSobrenome') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-                <label for="edit-cpf">CPF:</label>
-                <input type="text" id="edit-cpf" value="${localStorage.getItem('userCPF') || ''}" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            <div class="buttons" style="text-align: right; margin-top: 20px;">
-                <button class="cancel" style="padding: 10px 20px; border: none; background-color: #6c757d; color: white; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
-                <button class="save" style="padding: 10px 20px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer;">Salvar</button>
-            </div>
-        </div>
-    `;
-
-    modal.querySelector("#edit-nome").value = porteiroData.name || "";
-    modal.querySelector("#edit-sobrenome").value = porteiroData.lastName || "";
-    modal.querySelector("#edit-email").value = porteiroData.email || "";
-    modal.querySelector("#edit-cpf").value = porteiroData.cpf || ""; 
-
-    document.body.appendChild(modal);
-    modal.style.display = 'block';
-    modal.querySelector('.cancel').addEventListener('click', () => {
-        closeEditProfileModal();
-    });
-
-    modal.querySelector('.save').addEventListener('click', async () => {
-        
-    const porteiroInput = {
-        id: porteiroData.id,
-        identityId: porteiroData.identityId, 
-        name: modal.querySelector("#edit-nome").value,
-        lastName: modal.querySelector("#edit-sobrenome").value,
-        email: modal.querySelector("#edit-email").value,
-        phone: porteiroData.phone,
-        cpf: modal.querySelector("#edit-cpf").value,
-        cep: porteiroData.cep,
-        password: porteiroData.password,
-    };
-
-    saveProfileChanges(porteiroInput);
-});
-
-        document.body.appendChild(modal);
-
-}
-
 const userNameSpan = document.getElementById("user-name");
 
-// Busca os dados do administrador
 
-function closeEditProfileModal() {
-    const modal = document.getElementById('editProfileModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.remove();
-    }
-}
 reloadDoorman();
 
 async function reloadDoorman(){
@@ -955,56 +924,5 @@ async function reloadDoorman(){
     } else {
         console.warn("Não foi possível exibir o nome do usuário.");
     }
-}
-
-async function saveProfileChanges(porteiroInput) {
-    const modal = document.getElementById('editProfileModal');
-    if (!modal) return;
-
-        const tokenData = JSON.parse(localStorage.getItem("authData"));
-        const accessToken = tokenData.accessToken;
-
-        let url = `https://localhost:7100/users/v1/doorman/update/${porteiroInput.email}`;
-        let method = "PUT";
-
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
-            body: JSON.stringify(porteiroInput)
-        });
-
-        console.log(porteiroInput);
-            if (!response.ok) {
-
-                try {
-                    const errorData = await response.json();
-
-                    if (errorData.errors) {
-                        // Pega todas as mensagens do objeto 'errors' e junta
-                        const allMessages = Object.values(errorData.errors).flat();
-                        errorMessage = allMessages.join("<br>");
-                    } else if (errorData.message) {
-                        errorMessage = errorData.message;
-                    } else if (errorData.title) {
-                        errorMessage = errorData.title;
-                    }
-                } catch (e) {
-                    const fallbackText = await response.text().catch(() => null);
-                    if (fallbackText) errorMessage = fallbackText;
-                }
-
-                showNotification(errorMessage, 'error');
-
-
-                throw new Error(errorMessage);
-            }
-
-    closeEditProfileModal();
-    showNotification('Perfil atualizado com sucesso!', 'success');
-
-reloadDoorman();
 }
 //#endregion

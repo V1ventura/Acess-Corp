@@ -12,6 +12,43 @@ body {
   min-height: 100vh;
 }
 
+.modal-image {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.modal-image-content {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  width: 220px;
+  text-align: right;
+  position: relative;
+}
+
+.modal-image-content img {
+  display: block;
+  margin: 0 auto;
+  width: 180px;
+  height: 180px;
+}
+
+.close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+}
+
 .menu {
   width: 250px;
   background-color: #152e56;
