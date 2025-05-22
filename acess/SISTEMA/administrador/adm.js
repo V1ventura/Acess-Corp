@@ -230,9 +230,8 @@ document.getElementById("foto").addEventListener("change", function () {
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir este administrador?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/administrator/exclude/${email}`, {
                     method: "DELETE",
@@ -254,7 +253,8 @@ document.getElementById("foto").addEventListener("change", function () {
             console.error("Erro ao excluir administrador:", error);
             showNotification('Erro ao excluir administrador', 'error');
         }
-    }
+    });
+}
 });
     
 getAdministradores();
@@ -574,9 +574,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir esta entrega?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
                 const response = await fetch(`https://localhost:7100/users/v1/delivery/exclude/${id}`, {
                     method: "DELETE",
                     headers: {
@@ -596,7 +595,9 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir entrega:", error);
             showNotification('Erro ao excluir entrega', 'error');
         }
-    }});
+    });
+}
+});
 
     getEntregas();
 
@@ -874,9 +875,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir esta entrega?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/doorman/exclude/${email}`, {
                     method: "DELETE",
@@ -898,7 +898,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir porteiro:", error);
             showNotification('Erro ao excluir porteiro', 'error');
         }
-    }
+    });
+}
 });
 
  cadastroPorteiroForm.addEventListener("submit", async function (e) {
@@ -1122,9 +1123,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             return;
         }
 
+        showConfirmationModal("Você tem certeza que deseja excluir este morador?", async () => {
         try {
-            // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-            // if (confirmacao.onConfirm())
             { 
                 const response = await fetch(`https://localhost:7100/users/v1/residents/exclude/${email}`, {
                     method: "DELETE",
@@ -1146,7 +1146,8 @@ document.getElementById("formCadastroAdministrador").addEventListener("submit", 
             console.error("Erro ao excluir morador:", error);
             showNotification('Erro ao excluir morador', 'error');
         }
-    }
+    });
+}   
 });
     
 getMoradores();

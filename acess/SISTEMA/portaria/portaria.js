@@ -579,29 +579,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
     
-            try {
-                // var confirmacao = showConfirmationModal("Você tem certeza que deseja excluir este administrador?");
-                // if (confirmacao.onConfirm())
-                    const response = await fetch(`https://localhost:7100/users/v1/delivery/exclude/${id}`, {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": `Bearer ${tokenData.accessToken}`
+            showConfirmationModal("Você tem certeza que deseja excluir esta entrega?", async () => {
+                try {
+                        const response = await fetch(`https://localhost:7100/users/v1/delivery/exclude/${id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${tokenData.accessToken}`
+                            }
+                        });
+        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "Erro ao excluir entrega.");
                         }
-                    });
-    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || "Erro ao excluir entrega.");
-                    }
-    
-                    showNotification("Entrega excluída com sucesso!", 'success');
-                    getEntregas(); 
-    
-            } catch (error) {
-                console.error("Erro ao excluir entrega:", error);
-                showNotification('Erro ao excluir entrega', 'error');
-            }
-        }});
+        
+                        showNotification("Entrega excluída com sucesso!", 'success');
+                        getEntregas(); 
+        
+                } catch (error) {
+                    console.error("Erro ao excluir entrega:", error);
+                    showNotification('Erro ao excluir entrega', 'error');
+                }
+            });
+        }
+    });
+
     
         getEntregas();
     
