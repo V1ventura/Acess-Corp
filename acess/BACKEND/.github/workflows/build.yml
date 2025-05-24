@@ -1,0 +1,218 @@
+name: CI
+
+on: 
+    push:
+        branches:
+            - master 
+    pull_request:
+        branches:
+            - master 
+    workflow_dispatch:
+
+concurrency:
+        group: ${{ github.workflow }}-${{ github.ref}}
+        cancel-in-progress: true
+
+jobs:
+
+    versioning:
+        runs-on: ubuntu-latest
+        name: Versioning
+        permissions:
+            contents: write
+
+        outputs: 
+            version: ${{ steps.version.outputs.version }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                ref:  ${{ github.head_ref }}
+                fetch-depth: 0
+            
+            - uses: codacy/git-version@2.8.0
+              id: version
+              with: 
+                release-branch: master
+                prefix: v
+            
+            - name: Tag the repository
+              env: 
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                echo "::notice:: ${{ steps.version.outputs.version }}"
+                git config --global user.email "${{ github.actor }}@users.noreplay.github.com"
+                git config --global user.name "${{ github.actor }}"
+                git tag -a ${{ steps.version.outputs.version }} -m "Release ${{ steps.version.outputs.version }}"            
+                git push --tags
+              if: github.ref == 'refs/heads/master'
+
+    build-and-test:
+        needs: versioning
+        runs-on: ubuntu-latest
+        name: Build and test projects
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup .NET Core
+              uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: '8.x'
+                cache: true
+                cache-dependency-path: |
+                    AccessCorp.Users/AccessCorp.WebApi/packages.lock.json 
+                    AccessCorp.Identity/AccessCorp.WebApi/packages.lock.json
+
+            - name: Restore Services
+              run: |
+                  dotnet restore ./AccessCorp.Identity.sln
+                  dotnet restore ./AccessCorp.Users.sln
+
+            - name: Build Services
+              run: |
+                  dotnet build --no-restore --configuration Release ./AccessCorp.Identity.sln
+                  dotnet build --no-restore --configuration Release ./AccessCorp.Users.sln
+
+            - name: Test
+              run: |
+                  dotnet test --no-restore --no-build ./AccessCorp.Identity.sln --configuration Release --logger trx --results-directory "TestResults"
+                  dotnet test --no-restore --no-build ./AccessCorp.Users.sln --configuration Release --logger trx --results-directory "TestResults"
+
+            - uses: actions/upload-artifact@v4
+              with:
+                name: dotnet-test-results
+                path: TestResults
+                
+            - name: Publish
+              run: | 
+                dotnet publish AccessCorp.Identity/AccessCorp.WebApi/AccessCorp.WebApi.csproj --no-restore --no-build --configuration Release --output ./publish
+                dotnet publish AccessCorp.Users/AccessCorp.WebApi/AccessCorpUsers.WebApi.csproj --no-restore --no-build --configuration Release --output ./publish
+              if: github.ref == 'refs/heads/master'
+        
+            - name: Upload dotnet artifacts
+              uses:  actions/upload-artifact@v4
+              with:
+                name: api
+                path: ./publish
+
+    lint:
+      needs: versioning
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+          with: 
+            fetch-depth: 0
+
+        - uses: github/super-linter@v6
+          env:
+            DEFAULT_BRANCH: "master"
+            VALIDATE_ALL_CODEBASE: "false"
+            VALIDATE_YAML: "true"
+            VALIDATE_CSHARP: "true" 
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    dependency-check:
+      needs: versioning
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        pull-requests: write
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: actions/dependency-review-action@v4
+          with: 
+            comment-summary-in-pr: always 
+            base-ref: master
+            head-ref: master
+
+    code-security-check:
+      needs: versioning
+      runs-on: ubuntu-latest
+      permissions:
+        security-events: write
+        packages: read
+        actions: read
+        contents: read
+
+      strategy:
+        matrix:
+          include:
+            - name: Identity Service
+              language: csharp
+              build-mode: autobuild
+            - name: Users Service
+              language: csharp
+              build-mode: autobuild
+            
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: github/codeql-action/init@v3
+          name: Initialize CodeQL - ${{ matrix.name }}
+          with:
+            languages: ${{ matrix.language }}
+            build-mode: ${{ matrix.build-mode }}
+
+        - uses: github/codeql-action/analyze@v3
+          name: Analyze code - ${{ matrix.name }}
+          with:
+            category: "/languages:${{ matrix.language }}"
+
+      
+    build-docker-image:
+      needs: [versioning, build-and-test]
+      runs-on: ubuntu-latest
+
+      env: 
+        version: ${{ needs.versioning.outputs.version }}
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - uses: actions/download-artifact@v4
+          with:
+            path: app
+            merge-multiple: false
+
+        - name: Set env vars in Docker Compose
+          run: |
+            echo "VERSION=${{ env.version }}" >> $GITHUB_ENV
+            echo "DOCKERHUB_REPOSITORY=${{ secrets.DOCKERHUB_REPOSITORY }}" >> $GITHUB_ENV
+
+        - name: Build Docker images
+          run: |
+            VERSION=${{ env.version }} docker compose -f ./Docker/accesscorp_prod.yml build
+
+        - name: Tag Docker Images
+          run: |
+            docker tag matheuscfbt/accesscorp-sql-server:${{ env.version }} matheuscfbt/accesscorp-sql-server:latest
+            docker tag matheuscfbt/accesscorp-users-api:${{ env.version }} matheuscfbt/accesscorp-users-api:latest
+            docker tag matheuscfbt/accesscorp-identity-api:${{ env.version }} matheuscfbt/accesscorp-identity-api:latest
+            docker tag matheuscfbt/accesscorp-server:${{ env.version }} matheuscfbt/accesscorp-server:latest
+          if: github.ref == 'refs/heads/master'
+
+        - name: Docker Login
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+        - name: Push Docker Images
+          run: |
+            docker compose -f ./Docker/accesscorp_prod.yml push 
+
+        - name: Deploy Containers
+          run: |
+            docker compose -f ./Docker/accesscorp_prod.yml up -d
+
+
+
+                  
