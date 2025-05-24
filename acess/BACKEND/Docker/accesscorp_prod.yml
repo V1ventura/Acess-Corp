@@ -1,0 +1,63 @@
+services: 
+
+    sql-server:
+        image: matheuscfbt/accesscorp-sql-server:${VERSION:-latest}
+        container_name: accesscorp-sql-server
+        build:
+            context: ../sql
+            dockerfile: ./Dockerfile
+        ports:
+            - "1433:1433"
+        environment:
+            SA_PASSWORD: "Accesscorp@123"
+            ACCEPT_EULA: "Y"
+
+    accesscorp-users-api:
+        image: matheuscfbt/accesscorp-users-api:${VERSION:-latest}
+        container_name: accesscorp-users-api
+        build: 
+            context: ..
+            dockerfile: AccessCorp.Users/AccessCorp.WebApi/Dockerfile
+        ports:
+            - "7100:7100"
+            - "5164:5164"
+        environment: 
+            - ASPNETCORE_ENVIRONMENT=Docker 
+            - ASPNETCORE_URLS=https://+:7100;http://+:5164
+            - ASPNETCORE_Kestrel__Certificates__Default__Password=accesscorp
+            - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/accesscorp-certificate.pfx
+        volumes:
+            - ./certs:/https:ro
+        depends_on:
+            -  accesscorp-identity-api
+
+    accesscorp-identity-api:
+        image: matheuscfbt/accesscorp-identity-api:${VERSION:-latest}
+        container_name: accesscorp-identity-api
+        build:
+            context: ..
+            dockerfile: AccessCorp.Identity/AccessCorp.WebApi/Dockerfile
+        ports:
+            - "7061:7061"
+            - "5225:5225"
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Docker 
+            - ASPNETCORE_URLS=https://+:7061;http://+:5225
+            - ASPNETCORE_Kestrel__Certificates__Default__Password=accesscorp
+            - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/accesscorp-certificate.pfx
+        volumes:
+            - ./certs:/https:ro
+
+
+    accesscorp-server:
+        image: matheuscfbt/accesscorp-server:${VERSION:-latest}
+        container_name: accesscorp-server
+        build: 
+            context: ./
+            dockerfile: ./ngnix/Dockerfile
+        ports:
+            - "80:80"
+            - "443:443"
+        depends_on:
+            - accesscorp-identity-api
+            - accesscorp-users-api
